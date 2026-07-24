@@ -1,0 +1,1388 @@
+<title>Simulador · Recuperación POO &amp; Django</title>
+<style>
+  :root{
+    --bg:#F2F1EA; --bg-alt:#E8E6DC; --card:#FBFAF6;
+    --ink:#23271D; --ink-soft:#565C4E;
+    --accent:#2F6F4F; --accent-ink:#183A28; --accent-soft:#E4EFE7;
+    --wrong:#8B4A3A; --wrong-soft:#F4E4DF;
+    --code-bg:#1E2530; --code-ink:#D7DCE5; --code-key:#8FBF9F; --code-str:#D8B989;
+    --rule:#D3D0C2;
+    --shadow: 0 1px 2px rgba(35,39,29,0.06), 0 8px 24px -12px rgba(35,39,29,0.2);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#14171B; --bg-alt:#1C2024; --card:#191D21;
+      --ink:#E8E6DC; --ink-soft:#9AA08E;
+      --accent:#58A578; --accent-ink:#EAF6EE; --accent-soft:#22322A;
+      --wrong:#D08D7A; --wrong-soft:#332420;
+      --code-bg:#10151C; --code-ink:#D7DCE5; --code-key:#7FBF97; --code-str:#D8B989;
+      --rule:#2B2F29;
+      --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 12px 30px -14px rgba(0,0,0,0.65);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14171B; --bg-alt:#1C2024; --card:#191D21; --ink:#E8E6DC; --ink-soft:#9AA08E;
+    --accent:#58A578; --accent-ink:#EAF6EE; --accent-soft:#22322A; --wrong:#D08D7A; --wrong-soft:#332420;
+    --code-bg:#10151C; --code-ink:#D7DCE5; --code-key:#7FBF97; --code-str:#D8B989;
+    --rule:#2B2F29; --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 12px 30px -14px rgba(0,0,0,0.65);
+  }
+  :root[data-theme="light"]{
+    --bg:#F2F1EA; --bg-alt:#E8E6DC; --card:#FBFAF6; --ink:#23271D; --ink-soft:#565C4E;
+    --accent:#2F6F4F; --accent-ink:#183A28; --accent-soft:#E4EFE7; --wrong:#8B4A3A; --wrong-soft:#F4E4DF;
+    --code-bg:#1E2530; --code-ink:#D7DCE5; --code-key:#8FBF9F; --code-str:#D8B989;
+    --rule:#D3D0C2; --shadow: 0 1px 2px rgba(35,39,29,0.06), 0 8px 24px -12px rgba(35,39,29,0.2);
+  }
+
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{ max-width:740px; margin:0 auto; padding:40px 20px 90px; }
+
+  header.top{ margin-bottom:24px; }
+  .eyebrow{ font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); font-weight:700; margin-bottom:8px; }
+  h1{
+    font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;
+    font-size:clamp(24px,4vw,32px); line-height:1.15; margin:0 0 8px; text-wrap:balance; letter-spacing:-0.01em;
+  }
+  .sub{ color:var(--ink-soft); font-size:14.5px; max-width:58ch; margin:0; }
+
+  /* controls */
+  .controls{ display:flex; flex-wrap:wrap; gap:8px; margin:20px 0 6px; align-items:center; }
+  .chip{
+    font-size:13px; font-weight:600; padding:7px 14px; border-radius:999px;
+    background:var(--bg-alt); color:var(--ink-soft); border:1px solid var(--rule);
+    cursor:pointer; transition:all .12s ease; user-select:none;
+  }
+  .chip:hover{ color:var(--ink); }
+  .chip.active{ background:var(--accent); color:#fff; border-color:var(--accent); }
+  .chip-spacer{ flex:1; }
+  .chip.ghost{ background:transparent; }
+
+  /* progress */
+  .statusbar{ display:flex; align-items:center; gap:12px; margin:18px 0 22px; font-size:13px; color:var(--ink-soft); }
+  .track{ flex:1; height:6px; border-radius:99px; background:var(--bg-alt); overflow:hidden; }
+  .fill{ height:100%; background:var(--accent); border-radius:99px; transition:width .25s ease; }
+  .score-chip{
+    font-family:ui-monospace,Consolas,monospace; font-weight:700; font-size:13px;
+    color:var(--accent-ink); background:var(--accent-soft); padding:4px 10px; border-radius:6px; white-space:nowrap;
+  }
+
+  /* card */
+  .card{ background:var(--card); border-radius:12px; padding:26px 26px 24px; box-shadow:var(--shadow); }
+  .qmeta{ font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); font-weight:700; margin-bottom:10px; display:flex; gap:8px; align-items:center; }
+  .topic-tag{ padding:2px 8px; border-radius:5px; background:var(--bg-alt); }
+  .topic-tag.django{ color:#4C7CB8; }
+  .topic-tag.poo{ color:var(--accent); }
+  .qtext{ font-size:17px; font-weight:600; margin:0 0 16px; text-wrap:balance; }
+  .qtext code{ font-family:ui-monospace,Consolas,monospace; font-size:.9em; background:color-mix(in srgb, var(--ink) 8%, transparent); padding:1px 5px; border-radius:4px; }
+
+  pre.code{
+    background:var(--code-bg); color:var(--code-ink);
+    font-family:ui-monospace,"Cascadia Code","Source Code Pro",Consolas,monospace;
+    font-size:12.8px; line-height:1.6; padding:15px 17px; border-radius:8px; overflow-x:auto; margin:0 0 18px;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+  }
+  pre.code .k{ color:var(--code-key); }
+  pre.code .s{ color:var(--code-str); }
+  pre.code .c{ color:var(--ink-soft); opacity:.75; font-style:italic; }
+
+  .opts{ display:grid; gap:9px; margin-bottom:6px; }
+  .opt{
+    text-align:left; font: inherit; font-size:14.5px; color:var(--ink);
+    background:var(--bg-alt); border:1px solid var(--rule); border-radius:8px;
+    padding:11px 14px; cursor:pointer; display:flex; gap:10px; align-items:flex-start;
+    transition:border-color .12s ease, background .12s ease, transform .08s ease;
+  }
+  .opt:hover:not(:disabled){ border-color:var(--accent); transform:translateY(-1px); }
+  .opt:disabled{ cursor:default; }
+  .opt .tag{ font-family:ui-monospace,Consolas,monospace; font-weight:700; color:var(--ink-soft); flex-shrink:0; }
+  .opt code{ font-family:ui-monospace,Consolas,monospace; font-size:.93em; }
+  .opt.correct{ background:var(--accent-soft); border-color:var(--accent); }
+  .opt.correct .tag{ color:var(--accent-ink); }
+  .opt.incorrect{ background:var(--wrong-soft); border-color:var(--wrong); }
+  .opt.incorrect .tag{ color:var(--wrong); }
+  .opt .mark{ margin-left:auto; font-weight:700; flex-shrink:0; }
+  .opt.correct .mark{ color:var(--accent); }
+  .opt.incorrect .mark{ color:var(--wrong); }
+
+  .why{
+    border-left:3px solid var(--accent); padding:11px 16px; margin-top:14px;
+    font-size:14px; color:var(--ink-soft); background:color-mix(in srgb, var(--accent) 6%, transparent);
+    border-radius:0 6px 6px 0; display:none;
+  }
+  .why.show{ display:block; }
+  .why b{ color:var(--ink); font-weight:700; }
+  .why code{ font-family:ui-monospace,Consolas,monospace; font-size:.92em; background:color-mix(in srgb, var(--ink) 8%, transparent); padding:1px 5px; border-radius:4px; }
+
+  .nav{ display:flex; justify-content:space-between; align-items:center; margin-top:18px; gap:10px; }
+  .nav-right{ display:flex; gap:10px; margin-left:auto; }
+  .btn{
+    font:inherit; font-weight:700; font-size:14px; color:#fff; background:var(--accent);
+    border:none; border-radius:8px; padding:10px 20px; cursor:pointer; display:none;
+  }
+  .btn:hover:not(:disabled){ filter:brightness(1.08); }
+  .btn.show{ display:inline-block; }
+  .btn.secondary{ background:var(--bg-alt); color:var(--ink); border:1px solid var(--rule); }
+  .btn:disabled{ opacity:.35; cursor:default; }
+
+  /* matching questions */
+  .match-grid{ display:grid; gap:10px; margin-bottom:6px; }
+  .match-row{ display:grid; grid-template-columns:1fr 1.3fr auto; gap:10px; align-items:center; }
+  .match-left{
+    font-family:ui-monospace,Consolas,monospace; font-size:14px; font-weight:600;
+    background:var(--bg-alt); border-radius:8px; padding:11px 12px; border:1px solid var(--rule);
+  }
+  .match-select{
+    font:inherit; font-size:13.5px; color:var(--ink); background:var(--bg-alt);
+    border:1px solid var(--rule); border-radius:8px; padding:10px 12px; cursor:pointer;
+    appearance:none; -webkit-appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23565C4E' stroke-width='2'><path d='M6 8l4 4 4-4'/></svg>");
+    background-repeat:no-repeat; background-position:right 10px center; background-size:16px; padding-right:32px;
+  }
+  .match-select:disabled{ cursor:default; opacity:1; -webkit-text-fill-color:var(--ink); color:var(--ink); }
+  .match-row.correct .match-select{ border-color:var(--accent); background-color:var(--accent-soft); }
+  .match-row.incorrect .match-select{ border-color:var(--wrong); background-color:var(--wrong-soft); }
+  .match-mark{ font-weight:700; width:20px; text-align:center; }
+  .match-row.correct .match-mark{ color:var(--accent); }
+  .match-row.incorrect .match-mark{ color:var(--wrong); }
+  @media (max-width:480px){
+    .match-row{ grid-template-columns:1fr; }
+    .match-mark{ display:none; }
+  }
+
+  /* end screen */
+  .end{ display:none; }
+  .end.show{ display:block; }
+  .score-hero{ text-align:center; padding:30px 20px 26px; }
+  .score-num{ font-family:Georgia,serif; font-size:56px; font-weight:700; line-height:1; color:var(--accent); }
+  .score-label{ color:var(--ink-soft); font-size:14px; margin-top:6px; }
+  .breakdown{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:22px 0; }
+  .bd-card{ background:var(--bg-alt); border-radius:10px; padding:14px 16px; }
+  .bd-title{ font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); font-weight:700; margin-bottom:8px; }
+  .bd-bar-track{ height:8px; border-radius:99px; background:var(--card); overflow:hidden; margin-bottom:6px; }
+  .bd-bar-fill{ height:100%; background:var(--accent); border-radius:99px; }
+  .bd-num{ font-family:ui-monospace,Consolas,monospace; font-size:13px; color:var(--ink-soft); }
+
+  .missed-list{ display:grid; gap:8px; margin-top:8px; }
+  .missed-item{
+    background:var(--bg-alt); border-radius:8px; padding:10px 14px; font-size:13.5px; color:var(--ink-soft);
+    border-left:3px solid var(--wrong);
+  }
+  .missed-item b{ color:var(--ink); }
+  .end-actions{ display:flex; gap:10px; justify-content:center; margin-top:24px; flex-wrap:wrap; }
+
+  footer{ margin-top:44px; padding-top:18px; border-top:1px solid var(--rule); font-size:12.5px; color:var(--ink-soft); text-align:center; }
+
+  @media (max-width:480px){
+    .breakdown{ grid-template-columns:1fr; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">Programación Orientada a Objetos · Modo práctica</div>
+    <h1>Simulador de examen: POO &amp; Django</h1>
+    <p class="sub">Responde, recibe feedback inmediato y revisa el porqué. Incluye tus preguntas reales más un banco extra generado con el mismo nivel de dificultad.</p>
+  </header>
+
+  <div class="controls">
+    <button class="chip active" data-filter="all">Todas</button>
+    <button class="chip" data-filter="poo">Fundamentos POO</button>
+    <button class="chip" data-filter="django">Django</button>
+    <button class="chip" data-filter="simulado">Banco extra</button>
+    <span class="chip-spacer"></span>
+    <button class="chip ghost" id="shuffleBtn">🔀 Mezclar</button>
+  </div>
+
+  <div class="statusbar">
+    <span id="counter">Pregunta 1 de 46</span>
+    <div class="track"><div class="fill" id="progressFill" style="width:0%"></div></div>
+    <span class="score-chip" id="scoreChip">0 / 0</span>
+  </div>
+
+  <div class="card" id="quizCard">
+    <div class="qmeta"><span class="topic-tag" id="qTopicTag">POO</span></div>
+    <p class="qtext" id="qText"></p>
+    <pre class="code" id="qCode" style="display:none"></pre>
+    <div class="opts" id="qOpts"></div>
+    <div class="match-grid" id="qMatch" style="display:none"></div>
+    <div class="why" id="qWhy"></div>
+    <div class="nav">
+      <button class="btn secondary show" id="prevBtn">← Anterior</button>
+      <div class="nav-right">
+        <button class="btn" id="checkBtn">Comprobar</button>
+        <button class="btn" id="nextBtn">Siguiente →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card end" id="endCard">
+    <div class="score-hero">
+      <div class="score-num" id="finalScore">0%</div>
+      <div class="score-label" id="finalLabel">0 de 0 correctas</div>
+    </div>
+    <div class="breakdown">
+      <div class="bd-card">
+        <div class="bd-title">Fundamentos POO</div>
+        <div class="bd-bar-track"><div class="bd-bar-fill" id="poobar" style="width:0%"></div></div>
+        <div class="bd-num" id="poonum">0/0</div>
+      </div>
+      <div class="bd-card">
+        <div class="bd-title">Django</div>
+        <div class="bd-bar-track"><div class="bd-bar-fill" id="djbar" style="width:0%"></div></div>
+        <div class="bd-num" id="djnum">0/0</div>
+      </div>
+    </div>
+    <div id="missedWrap">
+      <div class="bd-title" style="margin-bottom:10px;">Para repasar</div>
+      <div class="missed-list" id="missedList"></div>
+    </div>
+    <div class="end-actions">
+      <button class="btn" id="retryAllBtn">Reintentar todas</button>
+      <button class="btn secondary" id="retryMissedBtn">Repasar solo falladas</button>
+    </div>
+  </div>
+
+  <footer>Banco vivo — mándame más capturas o pide más preguntas y lo actualizo en este mismo enlace.</footer>
+</div>
+
+<script>
+const K='<span class="k">', /**/ _K='</span>', S='<span class="s">', _S='</span>', C='<span class="c">', _C='</span>';
+
+const QUESTIONS = [
+// ---------------- POO ----------------
+{topic:'poo', q:'¿Qué representa informalmente un objeto en POO?',
+ opts:['Una entidad del mundo real','Una clase','Un método','Un molde'], correct:0,
+ why:'Un objeto es una instancia concreta que agrupa <b>estado</b> (atributos) y <b>comportamiento</b> (métodos) para representar algo real. La clase es el molde; el objeto es lo que se construye con ese molde.'},
+
+{topic:'poo', q:'¿Cuál afirmación sobre las clases abstractas es correcta?',
+ opts:['Pueden ser instanciadas directamente pero no heredadas','No contienen métodos, solo datos','No se pueden instanciar directamente y definen métodos que deben implementarse en las subclases','Solo pueden contener métodos estáticos'], correct:2,
+ why:'En Python se logra heredando de <code>ABC</code> y marcando métodos con <code>@abstractmethod</code>. Es un contrato: obliga a cada subclase a dar su propia implementación.'},
+
+{topic:'poo', q:'¿Qué imprime este código?',
+ code:`${K}from${_K} abc ${K}import${_K} ABC, abstractmethod
+
+${K}class${_K} Animal(ABC):
+    ${K}def${_K} hablar(self): ${K}pass${_K}
+    ${K}def${_K} comer(self): ${K}pass${_K}
+
+${K}class${_K} Perro(Animal):
+    hablar() ${K}-&gt;${_K} ${S}"guau"${_S}
+    comer()  ${K}-&gt;${_K} ${S}"estoy comiendo croquetas"${_S}
+
+${K}class${_K} Gato(Animal):
+    hablar() ${K}-&gt;${_K} ${S}"miau"${_S}
+    comer()  ${K}-&gt;${_K} ${S}"estoy comiendo atún"${_S}
+
+${K}class${_K} Loro(Animal):
+    hablar() ${K}-&gt;${_K} ${S}"Hola, como estas?"${_S}
+    comer()  ${K}-&gt;${_K} ${S}"estoy comiendo frutas"${_S}`,
+ opts:['Error: no se importó ABC','Error: la clase Animal está mal escrita','"guau", "estoy comiendo croquetas", "miau", "estoy comiendo atún", "Hola, como estas?", "estoy comiendo frutas"','Igual, pero con "Hey" y "manzanas"'], correct:2,
+ why:'Cada subclase sobreescribe <code>hablar()</code> y <code>comer()</code> con texto exacto. La trampa está en frases parecidas pero no idénticas — al leer trazados de código compara el texto literal.'},
+
+{topic:'poo', type:'match', q:'Relaciona cada concepto con su descripción correcta:',
+ pairs:[
+   ['Clase', 'Plantilla que define características y comportamientos'],
+   ['Objeto', 'Instancia específica creada a partir de una clase'],
+   ['Método', 'Función que define el comportamiento del objeto'],
+   ['Atributo', 'Datos que almacenan información del objeto'],
+ ],
+ why:'Clase = molde/plantilla. Objeto = instancia concreta construida a partir de esa clase. Método = función que define comportamiento. Atributo = dato que define estado.'},
+
+{topic:'poo', q:'¿Qué imprimen <code>corporativo.mostrarCliente()</code> y <code>personal.mostrarCliente()</code>?',
+ code:`${K}from${_K} abc ${K}import${_K} ABC, abstractmethod
+${K}class${_K} Cliente(ABC):
+    ${K}def${_K} __init__(self, nom, ced, tel, email):
+        self.nombre = nom; self.cedula = ced
+        self.telefono = tel; self.correo = email
+    ${K}@abstractmethod${_K}
+    ${K}def${_K} mostrarCliente(self): ${K}pass${_K}
+
+${K}class${_K} ClienteCorporativo(Cliente):
+    ${K}def${_K} __init__(self, nomb, cedu, tele, mail, contrato=${K}True${_K}):
+        super().__init__(nomb, cedu, tele, mail)
+        self.__contrato = ${S}"Con Contato Vigente"${_S} ${K}if${_K} contrato ${K}else${_K} ${S}'Sin Contrato Vigente'${_S}
+    ${K}@property${_K}
+    ${K}def${_K} contrato(self): ${K}return${_K} self.__contrato
+    ${K}def${_K} mostrarCliente(self):
+        print(${S}f'Cliente Corporativo: {self.nombre} - Correo: {self.correo} - Contrato: {self.contrato}'${_S})
+
+${K}class${_K} ClientePersonal(Cliente):
+    ${K}def${_K} __init__(self, nom, ced, tel, mail, promocion=${K}False${_K}):
+        super().__init__(nom, ced, tel, mail)
+        self.__promocion = promocion
+    ${K}@property${_K}
+    ${K}def${_K} promocion(self): ${K}return${_K} self.__promocion
+    ${K}def${_K} mostrarCliente(self):
+        promocionPorcentaje = ${S}10${_S} ${K}if${_K} self.promocion ${K}else${_K} ${S}0${_S}
+        print(${S}"Cliente Personal...: {:6} - Cedula: {} - Promocion: {}%"${_S}.format(self.nombre, self.cedula, promocionPorcentaje))
+
+corporativo = ClienteCorporativo(${S}"Daniel"${_S},${S}"091422332"${_S},${S}"0912131415"${_S},${S}"da@gmail.com"${_S},${K}False${_K})
+personal = ClientePersonal(${S}"Evelyn"${_S},${S}"091422332"${_S},${S}"0912131415"${_S},${S}"da@gmail.com"${_S})
+corporativo.mostrarCliente()
+personal.mostrarCliente()`,
+ opts:['Cliente Corporativo: Daniel - Correo: da@gmail.com - Contrato: Sin Contrato Vigente<br>Cliente Personal...: Evelyn - Cedula: 091422332 - Promocion: 0%', 'Cliente Corporativo: Daniel - Correo: da@gmail.com - Contrato: Sin Contrato Vigente<br>Cliente Personal...: Evelyn - Cedula: 091422332 - Promocion: 10%', 'Cliente Corporativo: Daniel - Correo: da@gmail.com - Contrato: Con Contrato Vigente<br>Cliente Personal...: Evelyn - Cedula: 091422332 - Promocion: 10%', 'Cliente Corporativo: Daniel - Correo: da@gmail.com - Contrato: Con Contrato Vigente<br>Cliente Personal...: Evelyn - Cedula: 091422332 - Promocion: 0%'], correct:0,
+ why:'<code>corporativo</code> se crea con <code>contrato=False</code> → la property <code>contrato</code> devuelve "Sin Contrato Vigente". <code>personal</code> se crea <b>sin</b> pasar <code>promocion</code>, así que usa el default <code>False</code> → <code>promocionPorcentaje</code> queda en 0. Ambas clases heredan de la <code>Cliente(ABC)</code> pero cada una implementa <code>mostrarCliente()</code> a su manera (polimorfismo), y exponen su estado privado solo mediante <code>@property</code> (encapsulación).'},
+
+{topic:'poo', q:'Dadas las clases A y B: <code>B.__init__(self, d, e, A)</code> recibe una instancia de <code>A</code> ya creada y la guarda como <code>self.A</code> (no la crea B, se la pasan desde afuera); <code>addAllNums()</code> usa <code>self.A.b</code> y <code>self.A.c</code>. ¿Qué tipo de relación UML existe entre A y B?',
+ opts:['Composición (línea sólida, rombo relleno) — B crea y posee a A, si B muere A también', 'Agregación (línea sólida, rombo hueco) — B usa una A que existe independientemente de B', 'Herencia (línea sólida, triángulo hueco)', 'Dependencia (línea discontinua, flecha simple)'], correct:1,
+ why:'Es agregación: <code>B</code> mantiene una referencia a un objeto <code>A</code>, pero ese objeto se crea <b>fuera</b> de B (<code>ting = A(...)</code>, luego <code>ling = B(5, 9, ting)</code>) y podría seguir existiendo si <code>ling</code> se destruye. En UML eso se dibuja con línea sólida y rombo hueco en el extremo de B. La composición (rombo relleno) sería si B creara su propia instancia de A internamente en su <code>__init__</code>.'},
+
+{topic:'poo', type:'match', q:'En el ejemplo de la clase <code>Estudiante</code>, relaciona cada método con su funcionalidad:',
+ pairs:[
+   ['esta_aprobado()', 'Verifica si el promedio es mayor o igual a 7.0'],
+   ['actualizar_promedio()', 'Calcula un nuevo promedio incorporando una nueva nota'],
+   ['cambiar_estado()', 'Modifica el estado de actividad del estudiante'],
+   ['get_nombre_completo()', 'Retorna el nombre y apellido concatenados'],
+ ],
+ why:'Cada nombre ya describe su responsabilidad: <code>esta_*</code> devuelve un booleano de estado, <code>actualizar_*</code>/<code>cambiar_*</code> mutan datos, <code>get_*</code> solo lee y compone — nombrar por intención.'},
+
+{topic:'poo', type:'match', q:'Dada la siguiente clase <code>Articulo</code>, relacione los elementos con sus respectivas definiciones:',
+ code:`${K}class${_K} Articulo:
+    _siguiente = ${S}0${_S}
+    _margenPorcentual = ${S}0.15${_S}
+
+    ${K}def${_K} __init__(self, precio=${S}10${_S}, stock=${S}1${_S}):
+        self.__codigo = self.siguiente()
+        self.__precioCosto = precio
+        self.__precioVenta = self.__margen()
+        self.__stock = stock
+
+    ${K}def${_K} siguiente(self):
+        Articulo._siguiente += ${S}1${_S}
+        ${K}return${_K} Articulo._siguiente
+
+    ${K}def${_K} saldoExistencia(self):
+        ${K}return${_K} self.__precioCosto * self.__stock
+
+    ${K}def${_K} __margen(self):
+        ${K}return${_K} (Articulo._margenPorcentual * self.__precioCosto) + self.__precioCosto`,
+ pairs:[
+   ['__margen()', 'Método privado'],
+   ['siguiente()', 'Método público'],
+   ['__init__()', 'Constructor'],
+   ['self.__codigo, self.__precioCosto, self.__precioVenta, self.__stock', 'Atributo de instancia'],
+   ['_siguiente, _margenPorcentual', 'Atributo de clase'],
+ ],
+ why:'<code>__margen()</code> tiene doble guion bajo → privado. <code>siguiente()</code> es un método normal → público (aunque lea/escriba un atributo de clase por dentro, eso no lo vuelve constante). <code>__init__()</code> es el constructor. Los atributos con <code>self.</code> dentro de <code>__init__</code> son de instancia (uno distinto por objeto). <code>_siguiente</code>/<code>_margenPorcentual</code> están escritos sueltos en el cuerpo de la clase → atributos de clase, compartidos por todas las instancias.'},
+
+{topic:'poo', q:'Indique cuál es el valor del Precio Venta que presenta el método <code>presentar()</code> para los objetos: Art1, Art2, Art3 en el orden indicado',
+ code:`${K}class${_K} Articulo:
+    _siguiente = ${S}0${_S}
+    _margenPorcentual = ${S}0.15${_S}
+
+    ${K}def${_K} __init__(self,precio = ${S}10${_S},stock = ${S}1${_S}):
+        self.__codigo = self.siguiente()
+        self.__precioCosto = precio
+        self.__precioVenta = self.__margen()
+        self.__stock = stock
+
+    ${K}def${_K} siguiente(self):
+        Articulo._siguiente = Articulo._siguiente + ${S}1${_S}
+        ${K}return${_K} Articulo._siguiente
+
+    ${K}def${_K} saldoExistencia(self):
+        ${K}return${_K} self.__precioCosto * self.__stock
+
+    ${K}def${_K} __margen(self):
+        ${K}return${_K} (Articulo._margenPorcentual * self.__precioCosto) + self.__precioCosto
+
+    ${K}def${_K} presentar(self):
+        ${K}return${_K} ${S}"PrecioVenta: {} "${_S}.format(self.__precioVenta)
+
+art1 = Articulo(); print(art1.presentar())
+art2 = Articulo(${S}4${_S},${S}50${_S}); print(art2.presentar())
+art3 = Articulo(${S}2${_S},${S}100${_S});print(art3.presentar())`,
+ opts:['0;  4.6;  2.3', '0;  4.6;  2.3', '11.5;  4;  2', '11.5;  4.6;  2.3'], correct:3,
+ why:'<code>__margen()</code> calcula <code>precioCosto * 1.15</code>. Art1 usa los valores por defecto (precio=10) → 10*1.15=11.5. Art2 tiene precio=4 → 4*1.15=4.6. Art3 tiene precio=2 → 2*1.15=2.3. El <code>stock</code> (segundo argumento) no afecta el precio de venta, solo a <code>saldoExistencia()</code> — es la trampa de la opción c. Nota: las opciones (a) y (b) están duplicadas de forma idéntica tal como aparecen en el examen real.'},
+
+{topic:'poo', q:'Dado el código de abajo, ¿qué imprime <code>print(C().metodo())</code>?',
+ code:`${K}class${_K} A:
+    ${K}def${_K} metodo(self):
+        ${K}return${_K} ${S}"A"${_S}
+${K}class${_K} B:
+    ${K}def${_K} metodo(self):
+        ${K}return${_K} ${S}"B"${_S}
+${K}class${_K} C(A, B):
+    ${K}pass${_K}
+print(C().metodo())`,
+ opts:['A', 'B', 'Error', 'AB'], correct:0,
+ why:'<code>C</code> no define <code>metodo()</code> propio, así que Python busca en el orden de resolución de métodos (MRO): primero en <code>C</code>, luego en <code>A</code> (el primer padre listado), luego en <code>B</code>. Como <code>A</code> ya tiene <code>metodo()</code>, ahí se detiene y devuelve <code>"A"</code> — nunca llega a mirar <code>B</code>.'},
+
+{topic:'poo', q:'Dado este código con encapsulación y herencia, ¿qué principios de POO se aplican?',
+ code:`${K}from${_K} abc ${K}import${_K} ABC, abstractmethod
+
+${K}class${_K} FiguraGeometrica(ABC):
+    ${K}def${_K} __init__(self, color):
+        self.__color = color  ${C}# encapsulación${_C}
+    ${K}def${_K} get_color(self):
+        ${K}return${_K} self.__color
+    ${K}@abstractmethod${_K}
+    ${K}def${_K} calcular_area(self): ${K}pass${_K}
+
+${K}class${_K} Circulo(FiguraGeometrica):
+    ${K}def${_K} __init__(self, radio, color):
+        super().__init__(color)
+        self.radio = radio
+    ${K}def${_K} calcular_area(self):
+        ${K}return${_K} ${S}3.14${_S} * (self.radio ** ${S}2${_S})
+
+${K}class${_K} Cuadrado(FiguraGeometrica):
+    ${K}def${_K} __init__(self, lado, color):
+        super().__init__(color)
+        self.lado = lado
+    ${K}def${_K} calcular_area(self):
+        ${K}return${_K} self.lado ** ${S}2${_S}
+
+figuras = [Circulo(${S}5${_S}, ${S}"rojo"${_S}), Cuadrado(${S}4${_S}, ${S}"azul"${_S})]
+${K}for${_K} figura ${K}in${_K} figuras:
+    print(figura.calcular_area())`,
+ opts:['Full Encapsulación, Abstracción y Herencia','Abstracción, Polimorfismo y Delegación','Herencia, Polimorfismo y Abstracción','Herencia, Full Encapsulación y Polimorfismo'], correct:2,
+ why:'<b>Herencia:</b> Circulo/Cuadrado extienden FiguraGeometrica. <b>Polimorfismo:</b> cada figura calcula su área de forma distinta con la misma llamada <code>calcular_area()</code>. <b>Abstracción:</b> FiguraGeometrica es una clase base con <code>@abstractmethod</code>. No es "full encapsulación" porque <code>radio</code>/<code>lado</code> quedan públicos, sin doble guion bajo.'},
+
+{topic:'poo', q:'Relaciona los temas con sus definiciones correctas. <br><br>1. Interfaz — 2. Abstracción — 3. Métodos Abstractos — 4. Clase Abstracta<br><br>A. Es un tipo de clase que no puede instanciarse directamente y está diseñada para ser heredada por otras clases.<br>B. Métodos sin implementación.<br>C. Permite ocultar detalles complejos de la implementación y mostrar solo lo esencial para el usuario.<br>D. Define un conjunto de métodos que una clase debe implementar, pero no proporciona una implementación concreta.<br><br>Seleccione la relación correcta',
+ opts:['1D 2C 3B 4A', '1C 2D 3B 4A', '1D 2C 3A 4B', '1D 2B 3C 4A'], correct:0,
+ why:'<b>1→D:</b> una interfaz define qué métodos debe tener una clase, sin implementarlos. <b>2→C:</b> abstracción es ocultar la complejidad y mostrar solo lo esencial. <b>3→B:</b> un método abstracto es exactamente eso, sin cuerpo/implementación. <b>4→A:</b> una clase abstracta no se puede instanciar directamente y está pensada para heredarse.'},
+
+{topic:'poo', q:'Dadas las clases A y B: <code>A</code> define <code>siguiente_canal()</code>, <code>canal_anterior()</code> y <code>subir_volumen()</code> solo con <code>pass</code> (sin lógica); <code>B(A)</code> sobreescribe esos tres métodos con implementación real (ej. <code>print("Samsung-&gt;Siguiente")</code>). ¿Qué tipo de relación UML existe entre A y B?',
+ opts:['Herencia normal (extends, línea sólida)', 'Realización de una interfaz (implements, línea discontinua)', 'Composición', 'Agregación'], correct:1,
+ why:'Como <code>A</code> solo declara métodos vacíos (<code>pass</code>), funciona como una <b>interfaz</b> (<code>&lt;&lt;Interfaz&gt;&gt;</code>): define el contrato pero no la lógica. <code>B</code> no "extiende" comportamiento heredado — lo <b>implementa</b> desde cero. En UML esa relación se dibuja con línea discontinua y flecha hueca (realización), no con la línea sólida de herencia normal.'},
+
+{topic:'poo', type:'match', q:'Relaciona cada principio fundamental de la POO con su definición correcta:',
+ pairs:[
+   ['Polimorfismo', 'Permitir que una misma acción tenga diferentes comportamientos'],
+   ['Encapsulamiento', 'Ocultar los detalles internos de un objeto'],
+   ['Abstracción', 'Mostrar solo la información esencial'],
+   ['Herencia', 'Reutilizar código mediante clases derivadas'],
+ ],
+ why:'Polimorfismo: el mismo método se comporta distinto según el objeto (ej. <code>calcular_area()</code> en Circulo vs Cuadrado). Encapsulamiento: ocultar estado interno con atributos privados. Abstracción: mostrar solo lo esencial, ocultando la complejidad (ej. clase base con <code>@abstractmethod</code>). Herencia: una clase hija reutiliza atributos/métodos de una clase padre.'},
+
+{topic:'poo', type:'match', q:'Relaciona cada convención de nomenclatura en Python con su nivel de acceso correspondiente:',
+ pairs:[
+   ['__nombre', 'Privado (oculto fuera de la clase)'],
+   ['_nombre', 'Protegido (solo dentro de la clase y subclases)'],
+   ['nombre', 'Público (acceso libre)'],
+ ],
+ why:'<code>nombre</code> sin guion = público. <code>_nombre</code> con un guion = protegido por convención (nada te impide acceder desde fuera, pero no deberías). <code>__nombre</code> con doble guion = privado, con <i>name mangling</i> que lo oculta fuera de la clase.'},
+
+{topic:'poo', q:'¿Qué mostrará este archivo <code>cargo.py</code> si <b>solo</b> se importa la clase <code>Cargo</code> desde otro archivo?',
+ code:`${K}class${_K} Cargo:
+    secuencia = ${S}0${_S}
+    ${K}def${_K} __init__(self, des=${S}"Sin cargo"${_S}):
+        Cargo.secuencia = Cargo.secuencia + ${S}1${_S}
+        self.codigo = Cargo.secuencia
+        self.descripcion = des
+
+${K}if${_K} __name__ == ${S}"__main__"${_S}:
+    cargo1 = Cargo()
+    print(${S}"cargo1"${_S}, cargo1.codigo, cargo1.descripcion)
+    cargo2 = Cargo(${S}"Docente"${_S})
+    print(${S}"cargo2"${_S}, cargo2.codigo, cargo2.descripcion)
+    cargo3 = Cargo()
+    print(${S}"cargo3"${_S}, cargo3.codigo, cargo3.descripcion)`,
+ opts:['No muestra nada','Muestra todos los cargos instanciados','Muestra "cargo1 1 Sin cargo", "cargo2 2 Docente", "cargo3 3 Sin cargo"','Produce un error'], correct:0,
+ why:'El bloque <code>if __name__ == "__main__":</code> solo se ejecuta cuando el archivo corre directamente. Al <b>importar</b> la clase desde otro módulo, ese bloque nunca se ejecuta — no hay ningún <code>print</code> que corra, así que no muestra nada.'},
+
+{topic:'poo', q:'¿Qué imprime <code>print(comp.recorrido())</code>?',
+ code:`${K}class${_K} Comprehension:
+    ${K}def${_K} __init__(self, car):
+        self.caracteres = car
+    ${K}def${_K} recorrido(self):
+        lista = [valor ${K}for${_K} valor ${K}in${_K} ${S}'examenrecuperacion'${_S} ${K}if${_K} valor ${K}not in${_K} self.caracteres]
+        diccionario = {ind: valor ${K}for${_K} ind, valor ${K}in${_K} enumerate(lista) ${K}if${_K} ind % ${S}2${_S} == ${S}0${_S}}
+        ${K}return${_K} diccionario
+
+comp = Comprehension(${S}"aceious"${_S})
+print(comp.recorrido())`,
+ opts:["{0: 'x', 2: 'n'}", "{0: 'x', 1: 'm', 2: 'n', 3: 'p'}", "{0: 'x', 2: 'n', 4: 'p', 6: 'n'}", "{0: 'x', 2: 'n', 4: 'p', 6: 'n', 8: 'p'}"], correct:2,
+ why:"Filtrando 'examenrecuperacion' y quitando cada carácter presente en \"aceious\" (a,c,e,i,o,u,s) queda: <code>x,m,n,r,p,r,n</code> (7 elementos, índices 0–6). El diccionario se queda solo con índices pares: 0→x, 2→n, 4→p, 6→n."},
+
+{topic:'poo', q:'Dado <code>tupla = ((\'POO\',50,20),(\'Logica\',10,30),(\'Calculo\',15,20),(\'Integral\',13,15))</code>, ¿qué imprime <code>print(tupla[2:3][-1][-1])</code>?',
+ opts:["('Calculo', 15, 20)", '(15, 20)', "('Integral', 13, 15)", '20'], correct:3,
+ why:'<code>tupla[2:3]</code> es un <i>slice</i>, así que sigue siendo una tupla que envuelve un solo elemento: <code>((\'Calculo\',15,20),)</code>. <code>[-1]</code> saca ese único elemento: <code>(\'Calculo\',15,20)</code>. El segundo <code>[-1]</code> ya no es slice sino índice simple sobre esa tupla interna, así que devuelve su último valor: <code>20</code>.'},
+
+{topic:'poo', q:'¿Cuál es la salida de este código?',
+ code:`${K}class${_K} ValidacionMixin:
+    ${K}def${_K} validar_email(self, email):
+        ${K}return${_K} ${S}"@"${_S} ${K}in${_K} email
+
+${K}class${_K} Usuario(ValidacionMixin):
+    ${K}def${_K} __init__(self, nombre, email):
+        ${K}if${_K} self.validar_email(email):
+            self.email = email
+        ${K}else${_K}:
+            ${K}raise${_K} ValueError(${S}"Email inválido"${_S})
+
+${K}try${_K}:
+    u = Usuario(${S}"Juan"${_S}, ${S}"juan@mail.com"${_S})
+    print(${S}"Usuario creado"${_S})
+${K}except${_K} ValueError:
+    print(${S}"Error en email"${_S})`,
+ opts:['Usuario creado','Error en email','Error: no puede heredar de Mixin','No imprime nada'], correct:0,
+ why:'<code>"juan@mail.com"</code> contiene <code>"@"</code>, así que <code>validar_email()</code> (heredado del mixin) devuelve <code>True</code>. Nunca se lanza el <code>ValueError</code>, por lo que el <code>try</code> termina normalmente e imprime "Usuario creado".'},
+
+{topic:'poo', q:'¿Qué imprime este código?',
+ code:`${K}class${_K} Contador:
+    total = ${S}0${_S}
+    ${K}def${_K} __init__(self):
+        Contador.total += ${S}1${_S}
+    ${K}@classmethod${_K}
+    ${K}def${_K} resumen(cls):
+        ${K}return${_K} ${S}f"Instancias creadas: {cls.total}"${_S}
+    ${K}@staticmethod${_K}
+    ${K}def${_K} es_par(n):
+        ${K}return${_K} n % ${S}2${_S} == ${S}0${_S}
+
+Contador(); Contador(); Contador()
+print(Contador.resumen())
+print(Contador.es_par(${S}7${_S}))`,
+ opts:['Instancias creadas: 3 / False','Instancias creadas: 0 / True','Instancias creadas: 3 / True','Error: es_par requiere una instancia'], correct:0,
+ why:'Cada <code>Contador()</code> incrementa el atributo de clase <code>total</code>. <code>resumen()</code> es <code>@classmethod</code> y lee <code>cls.total</code> → 3. <code>es_par()</code> es <code>@staticmethod</code>, no necesita instancia; <code>7 % 2 == 0</code> es <code>False</code>.'},
+
+{topic:'poo', q:'¿Qué ocurre al ejecutar <code>r.area = 100</code>?',
+ code:`${K}class${_K} Rectangulo:
+    ${K}def${_K} __init__(self, base, altura):
+        self._base = base
+        self._altura = altura
+
+    ${K}@property${_K}
+    ${K}def${_K} area(self):
+        ${K}return${_K} self._base * self._altura
+
+    ${K}@area.setter${_K}
+    ${K}def${_K} area(self, valor):
+        ${K}raise${_K} AttributeError(${S}"No se puede asignar area directamente"${_S})
+
+r = Rectangulo(${S}4${_S}, ${S}5${_S})
+print(r.area)
+r.area = ${S}100${_S}`,
+ opts:['Se asigna 100 sin problema','Se lanza AttributeError porque el setter lo prohíbe explícitamente','Error porque area no tiene setter definido','No hace nada, area sigue siendo 20'], correct:1,
+ why:'<code>@property</code> convierte <code>area</code> en un atributo calculado de solo lectura salvo que exista un setter. Aquí <b>sí</b> hay un <code>@area.setter</code>, pero está escrito para lanzar <code>AttributeError</code> a propósito — un patrón común para bloquear asignación directa a un valor derivado.'},
+
+{topic:'poo', q:'¿Qué imprime <code>print(D().saludo())</code>?',
+ code:`${K}class${_K} A:
+    ${K}def${_K} saludo(self): ${K}return${_K} ${S}"A"${_S}
+${K}class${_K} B(A):
+    ${K}def${_K} saludo(self): ${K}return${_K} ${S}"B->"${_S} + super().saludo()
+${K}class${_K} C(A):
+    ${K}def${_K} saludo(self): ${K}return${_K} ${S}"C->"${_S} + super().saludo()
+${K}class${_K} D(B, C):
+    ${K}def${_K} saludo(self): ${K}return${_K} ${S}"D->"${_S} + super().saludo()
+
+print(D().saludo())`,
+ opts:['D->B->A', 'D->B->C->A', 'D->C->B->A', 'Error: herencia circular'], correct:1,
+ why:'Con herencia múltiple, Python resuelve <code>super()</code> siguiendo el <b>MRO</b> (Method Resolution Order): D → B → C → A. Cada clase agrega su prefijo antes de delegar al siguiente en esa cadena, dando <code>"D-&gt;B-&gt;C-&gt;A"</code>.'},
+
+{topic:'poo', q:'¿Qué principio de POO permite que <code>hacer_sonar()</code> funcione con <code>Pato</code> y <code>Perro</code> sin una clase base común?',
+ code:`${K}class${_K} Pato:
+    ${K}def${_K} sonido(self): ${K}return${_K} ${S}"Cuac"${_S}
+${K}class${_K} Perro:
+    ${K}def${_K} sonido(self): ${K}return${_K} ${S}"Guau"${_S}
+
+${K}def${_K} hacer_sonar(animal):
+    print(animal.sonido())
+
+${K}for${_K} a ${K}in${_K} [Pato(), Perro()]:
+    hacer_sonar(a)`,
+ opts:['Herencia', 'Encapsulación', 'Polimorfismo (duck typing)', 'Abstracción con ABC'], correct:2,
+ why:'Python no exige una jerarquía común — solo que el objeto implemente el método esperado (<code>sonido()</code>). Eso es <i>duck typing</i>: "si camina como pato y suena como pato...". Es polimorfismo sin necesidad de herencia formal.'},
+
+// ---------------- DJANGO ----------------
+{topic:'django', q:'Modelo <code>Proyecto</code>(nombre, estado con <code>choices=[(\'activo\',\'Activo\'),(\'pausado\',\'Pausado\'),(\'completado\',\'Completado\')]</code>, presupuesto). Se necesita obtener todos los proyectos que tienen estado \'activo\' o \'completado\'. ¿Cuál es la sentencia ORM correcta?',
+ opts:["Proyecto.objects.filter(estado in ['activo', 'completado'])", "Proyecto.objects.filter(estado__contains=['activo', 'completado'])", "Proyecto.objects.filter(estado='activo' | estado='completado')", "Proyecto.objects.filter(estado__in=['activo', 'completado'])"], correct:3,
+ why:'<code>__in</code> es el lookup pensado exactamente para "el campo coincide con alguno de estos valores". <code>estado in [...]</code> no es sintaxis válida dentro de los kwargs de <code>filter()</code>. <code>__contains</code> busca una subcadena dentro de un solo valor, no pertenencia a una lista. Y repetir <code>estado=</code> dos veces con <code>|</code> como en la opción c ni siquiera es Python válido (kwarg duplicado).'},
+
+{topic:'django', q:'Borrado lógico de empleados con <code>sueldo &gt;= 1000</code> <b>o</b> <code>sueldo == 500</code>:',
+ opts:["filter((sueldo__gte=1000) | (sueldo=500))", "filter(Q(sueldo__gte=1000) , Q(sueldo=500))", "filter(Q(sueldo__gte=1000) | Q(sueldo=500)).update(estado=False)", "filter(...).delete(estado=False)"], correct:2,
+ why:'Los kwargs normales de <code>filter()</code> se combinan con AND — para OR hace falta envolver cada condición en <code>Q(...)</code> y unirlas con <code>|</code> (la coma en la otra opción sigue siendo AND). Como es borrado lógico se usa <code>.update(estado=False)</code>; <code>.delete()</code> no acepta argumentos.'},
+
+{topic:'django', q:'Completar <code>ProvinciaForm</code> (nombre, país FK, estado, usuario — usuario no debe aparecer en el formulario):',
+ code:`${K}class${_K} ProvinciaForm(____):
+    ${K}class${_K} Meta:
+        model = Provincia
+        ____ = [${S}"nombre"${_S}, ${S}"pais"${_S}, ${S}"estado"${_S}]
+        ____ = [${S}"usuario"${_S}]
+        widgets = {
+            ____: forms.Select(attrs={...}),
+            ____: forms.TextInput(attrs={...}),
+        }`,
+ opts:['forms; fields; exclude; "nombre"; "pais"', 'ModelForm; fields; exclude; "nombre"; "pais"', 'forms; exclude; fields; "pais"; "nombre"', 'ModelForm; fields; exclude; "pais"; "nombre"'], correct:3,
+ why:'Hereda de <code>forms.ModelForm</code> (no de <code>forms.Form</code>) para generar campos desde el modelo. <code>fields</code> lista lo que se muestra, <code>exclude</code> lo que no. Los widgets calzan por tipo: <code>pais</code> es FK → <code>Select</code>; <code>nombre</code> es CharField → <code>TextInput</code>.'},
+
+{topic:'django', q:'En <code>PacienteUpdateView</code>, ¿cuál combinación completa correctamente <code>success_url</code> y <code>form_valid()</code>?',
+ code:`${K}class${_K} PacienteUpdateView(UpdateView):
+    model = Paciente
+    form_class = PacienteForm
+    success_url = ____
+
+    ${K}def${_K} form_valid(self, form):
+        paciente = ____
+        paciente.usuario_modificado = self.request.user
+        paciente.save()
+        ${K}return${_K} super().form_valid(form)`,
+ opts:['redirect(\'paciente_list\'); form.save(commit=True)', 'reverse_lazy(\'paciente_list\'); form.save(commit=True)', 'reverse_lazy(\'paciente_list\'); form.save(commit=False)', 'redirect(\'paciente_list\'); form.save(commit=False)'], correct:2,
+ why:'<code>success_url</code> es un atributo de clase evaluado al cargar el módulo — <code>reverse_lazy</code> pospone la resolución de la URL (a diferencia de <code>redirect()</code>, pensado para usarse dentro de un método). En <code>form_valid</code> se necesita <code>form.save(commit=False)</code> para obtener el objeto sin guardarlo aún, poder asignarle <code>usuario_modificado</code>, y recién ahí llamar <code>paciente.save()</code>.'},
+
+{topic:'django', q:'Completar <code>list_pacientes()</code> para paginar correctamente:',
+ code:`${K}def${_K} list_pacientes(request):
+    pacientes = ____
+    paginator = Paginator(pacientes, ${S}10${_S})
+    page = request.GET.get(${S}'page'${_S})
+    pacientes_page = ____
+    ${K}return${_K} render(request, ${S}'paciente_list.html'${_S}, {${S}'pacientes'${_S}: pacientes_page})`,
+ opts:['Paciente.objects.filter(); paginator.get_page(page)', 'Paciente.objects.all(); paginator.get_page(page)', 'Paciente.objects.all(); paginator.page(page)', 'Paciente.objects.get(); paginator.get_page(page)'], correct:1,
+ why:'<code>.all()</code> trae el listado completo para paginar. <code>paginator.get_page(page)</code> es más seguro que <code>.page(page)</code>: si el número de página viene vacío, inválido o fuera de rango (típico en un GET param), devuelve la primera o última página en vez de lanzar una excepción.'},
+
+{topic:'django', q:'Vista de función con decoradores — línea 2 de <code>delete_paciente</code>:',
+ code:`${K}@login_required${_K}(login_url=${S}'login'${_S})
+${K}@require_http_methods${_K}([${S}'POST'${_S}])
+${K}def${_K} delete_paciente(request, pk):
+    paciente = ____
+    paciente.activo = ${K}False${_K}
+    paciente.save()
+    ${K}return${_K} redirect(${S}'paciente_list'${_S})`,
+ opts:['Paciente.objects.get(pk)', 'get_object_or_404(Paciente, pk=pk)', 'Paciente.objects.get(Paciente.pk == pk)', 'Paciente.objects.filter(pk=pk).first()'], correct:1,
+ why:'<code>get_object_or_404</code> devuelve el objeto o corta con un 404 limpio si no existe. <code>.get(pk)</code> posicional es inválido; <code>.filter().first()</code> devolvería <code>None</code> silenciosamente y el resto del código fallaría más abajo con un error menos claro.'},
+
+{topic:'django', q:'Completar <code>PacienteDeleteView</code> (borrado lógico: en vez de borrar, desactiva al paciente):',
+ code:`${K}class${_K} PacienteDeleteView(DeleteView):
+    model = Paciente
+    template_name = ${S}'paciente_confirm_delete.html'${_S}
+    success_url = ____
+
+    ${K}def${_K} delete(self, request, *args, **kwargs):
+        paciente = ____
+        paciente.activo = ${K}False${_K}
+        paciente.save()
+        messages.success(request, ${S}f"Paciente '{paciente.nombre}' ha sido desactivado exitosamente."${_S})
+        ${K}return${_K} super().delete(request, *args, **kwargs)`,
+ opts:["reverse_lazy('paciente_list'); object()", "redirect('paciente_list'); self.object()", "reverse_lazy('paciente_list'); self.get_object()", "reverse_lazy('paciente_list'); get_object()"], correct:2,
+ why:'De nuevo <code>success_url</code> pide <code>reverse_lazy</code> por ser atributo de clase. Dentro de <code>delete()</code>, como se está sobreescribiendo el método por completo, <code>self.object</code> todavía no existe — hay que obtenerlo explícitamente con <code>self.get_object()</code> (el método que provee <code>SingleObjectMixin</code>). <code>object()</code> a secas no es nada definido, y <code>get_object()</code> sin <code>self.</code> tampoco existe en ese contexto.'},
+
+{topic:'django', q:'Vista <code>PacienteCreateView</code>. El modelo, importaciones, rutas, formulario y html no tienen errores. Detecte la(s) línea(s) con error(es) que ocasiona(n) que la clase no funcione.',
+ code:`${C}1.${_C} ${K}class${_K} PacienteCreateView(CreateView):
+${C}2.${_C}     model = Paciente
+${C}3.${_C}     template_name = ${S}'paciente_form.html'${_S}
+${C}4.${_C}     form_class = PacienteForm
+${C}5.${_C}     success_url = redirect(${S}'paciente_list'${_S})
+${C}6.${_C}     ${K}def${_K} form_valid(self, form):
+${C}7.${_C}         paciente = form.save(commit=${K}True${_K})
+${C}8.${_C}         paciente.usuario_creado = self.request.user
+${C}9.${_C}         paciente.save()
+${C}10.${_C}        messages.success(self.request, ${S}f"Paciente '{paciente.nombre}' creado exitosamente."${_S})
+${C}11.${_C}        ${K}return${_K} super().form_valid(form)
+${C}12.${_C}    ${K}def${_K} form_invalid(self, form):
+${C}13.${_C}        messages.error(self.request, ${S}"Ocurrió un error al crear el paciente. Por favor, revisa los datos."${_S})
+${C}14.${_C}        ${K}return${_K} super().form_invalid(form)`,
+ opts:['5,7', '5', '6,9', '4'], correct:0,
+ why:'<b>Línea 5:</b> <code>success_url</code> es un atributo de clase evaluado al importar el módulo — <code>redirect()</code> no sirve ahí (necesita ejecutarse en tiempo de request), hace falta <code>reverse_lazy(\'paciente_list\')</code>. <b>Línea 7:</b> si se guarda con <code>commit=True</code> antes de asignar <code>usuario_creado</code>, el primer guardado se hace sin ese dato — el patrón correcto es <code>form.save(commit=False)</code>, asignar el campo, y recién ahí <code>paciente.save()</code>.'},
+
+{topic:'django', q:'Vista de función <code>create_paciente()</code>. El modelo, importaciones, rutas, formulario y html no tienen errores. Detecte la(s) línea(s) con error(es) que ocasiona(n) que la función no funcione.',
+ code:`${C}1.${_C} ${K}def${_K} create_paciente(request):
+${C}2.${_C}     ${K}if${_K} request.method == ${S}'POST'${_S}:
+${C}3.${_C}         form = PacienteForm(request.POST)
+${C}4.${_C}         ${K}if${_K} form.is_valid():
+${C}5.${_C}             paciente = form.save(commit=${K}False${_K})
+${C}6.${_C}             paciente.usuario_creado = request.user
+${C}7.${_C}             form.save()
+${C}8.${_C}             messages.success(request, ${S}f"Paciente '{paciente.nombre}' creado exitosamente."${_S})
+${C}9.${_C}             ${K}return${_K} redirect(${S}'paciente_list'${_S})
+${C}10.${_C}    ${K}else${_K}:
+${C}11.${_C}        form = PacienteForm()
+${C}12.${_C}    ${K}return${_K} render(request, ${S}'paciente_form.html'${_S}, {${S}'form'${_S}: form})`,
+ opts:['3,6', '7', '5,7', '5'], correct:2,
+ why:'Para el examen: memoriza el literal <b>"5,7"</b>. Curiosidad: la retroalimentación oficial del propio curso se contradice — dice textualmente "En línea 5 <code>form.save(commit=False)</code> es correcto, pero en línea 7 debe ser <code>paciente.save()</code> no <code>form.save()</code>" y aun así marca <b>ambas</b> líneas (5 y 7) como la respuesta correcta. Para entender el concepto real: el único error inequívoco es la línea 7 — el mismo que en <code>update_paciente()</code>, donde la clave sí marca solo esa línea.'},
+
+{topic:'django', q:'Cuadrícula de opción múltiple — dado el modelo de abajo, relacione cada instrucción del ORM de Django con lo que hace:<br><br><code>1)</code> <code>r = Reportero(nombre_reportero=\'John Smith\')</code><br><code>a = Articulo(fecha=datetime.now(), titulo=\'Django\', contenido=\'Yeah.\', reportero=r)</code><br><code>a.save()</code><br><br><code>2)</code> <code>r = a.reportero</code><br><code>r.nombre_reportero</code><br><br><code>3)</code> <code>r.articulo_set.all()</code><br><br><code>4)</code> <code>Articulo.objects.filter(reportero__nombre_reportero="John")</code><br><br><code>5)</code> <code>r.nombre_reportero = \'Billy Goat\'</code><br><code>r.save()</code><br><br>A) Dado un reportero instanciado selecciona todos sus artículos<br>B) Selecciona todos los artículos según el nombre del reportero indicado<br>C) Inserta un articulo<br>D) Actualiza un reportero<br>E) Presenta información del reportero<br>F) Presenta todos los reporteros según el nombre del reportero indicado<br><br>Seleccione la relación correcta',
+ code:`${K}from${_K} django.db ${K}import${_K} models
+${K}class${_K} Reportero(models.Model):
+    nombre_reportero = models.CharField(max_length=${S}70${_S})
+    ${K}def${_K} __str__(self):  ${C}# __unicode__ en Py2${_C}
+        ${K}return${_K} self.nombre_reportero
+
+${K}class${_K} Articulo(models.Model):
+    fecha = models.DateField()
+    titulo = models.CharField(max_length=${S}200${_S})
+    contenido = models.TextField()
+    reportero = models.ForeignKey(Reportero)
+    ${K}def${_K} __str__(self):  ${C}# __unicode__ en Py2${_C}
+        ${K}return${_K} self.titulo`,
+ opts:['1C – 2E – 3A – 4F 5D', '1C – 2E – 3A – 4B 5D', '1C – 2A – 3E – 4B 5D', '1C – 2D – 3A – 4F 5E'], correct:1,
+ why:'<b>1→C:</b> crear instancias y <code>.save()</code> inserta un artículo nuevo. <b>2→E:</b> leer <code>r.nombre_reportero</code> desde el artículo solo presenta información del reportero. <b>3→A:</b> <code>articulo_set</code> es el manager inverso del FK — dado un reportero ya instanciado, trae todos sus artículos. <b>4→B:</b> <code>filter(reportero__nombre_reportero=...)</code> filtra artículos según el nombre del reportero relacionado. <b>5→D:</b> modificar un atributo del reportero y volver a <code>.save()</code> lo actualiza.'},
+
+{topic:'django', q:'¿En qué línea está el error que impide que esta función funcione?',
+ code:`${K}from${_K} django.shortcuts ${K}import${_K} render, get_object_or_404
+${K}from${_K} .models ${K}import${_K} Paciente, Consulta
+
+${C}1.${_C} ${K}def${_K} detail_paciente(request, pk):
+${C}2.${_C}     paciente = get_object_or_404(Paciente, pk=pk)
+${C}3.${_C}     consultas = Consulta.objects.filter(paciente_id=pk)
+${C}4.${_C}     context = {
+${C}5.${_C}         ${S}'paciente'${_S}: paciente,
+${C}6.${_C}         ${S}'consultas'${_S} = consultas
+${C}7.${_C}     }
+${C}8.${_C}     ${K}return${_K} render(request, ${S}'paciente_detail.html'${_S}, context)`,
+ opts:['8', '3', '2', '6'], correct:3,
+ why:'La línea 6 usa <code>=</code> en vez de <code>:</code> dentro del diccionario. En un literal <code>{}</code> los pares van con dos puntos (<code>\'clave\': valor</code>); con <code>=</code> es un <code>SyntaxError</code> y el archivo ni siquiera se puede ejecutar.'},
+
+{topic:'django', q:'¿En qué línea está el error de esta vista de actualización?',
+ code:`${C}1.${_C} ${K}def${_K} update_paciente(request, pk):
+${C}2.${_C}     paciente = get_object_or_404(Paciente, pk=pk)
+${C}3.${_C}     ${K}if${_K} request.method == ${S}'POST'${_S}:
+${C}4.${_C}         form = PacienteForm(request.POST, instance=paciente)
+${C}5.${_C}         ${K}if${_K} form.is_valid():
+${C}6.${_C}             paciente = form.save(commit=${K}False${_K})
+${C}7.${_C}             paciente.usuario_modificado = request.user
+${C}8.${_C}             form.save()
+${C}9.${_C}             messages.success(request, ${S}f"Paciente actualizado"${_S})
+${C}10.${_C}            ${K}return${_K} redirect(${S}'paciente_detail'${_S}, pk=pk)
+${C}11.${_C}    ${K}else${_K}:
+${C}12.${_C}        form = PacienteForm(instance=paciente)
+${C}13.${_C}    ${K}return${_K} render(request, ${S}'paciente_form.html'${_S}, {${S}'form'${_S}: form})`,
+ opts:['6', '8', '10', '4'], correct:1,
+ why:'Tras <code>form.save(commit=False)</code> (línea 6) el patrón correcto es asignar el campo extra y guardar con <code>paciente.save()</code>. La línea 8 vuelve a llamar <code>form.save()</code> en vez de <code>paciente.save()</code> — es el error que el curso marca como incorrecto en este patrón.'},
+
+{topic:'django', q:'¿En qué línea está el error de esta vista basada en clase?',
+ code:`${K}class${_K} HomeTemplateView(TemplateView):
+${C}1.${_C}     template_name = ${S}'home.html'${_S}
+    ${K}def${_K} get_context_data(self, **kwargs):
+${C}2.${_C}         context = get_context_data(**kwargs)
+${C}3.${_C}         pacientes = Paciente.objects.all()
+${C}4.${_C}         context[${S}'pacientes'${_S}] = pacientes
+${C}5.${_C}         ${K}return${_K} context`,
+ opts:['1', '2', '4', '3'], correct:1,
+ why:'Falta <code>super().</code> antes de <code>get_context_data(**kwargs)</code>. Sin él, Python busca una función global llamada <code>get_context_data</code> (no existe) en vez de llamar a la implementación del padre — <code>NameError</code>.'},
+
+{topic:'django', q:'Modelos <code>Cliente</code>(nombre, email, ciudad) y <code>Pedido</code>(cliente FK con <code>related_name=\'pedidos\'</code>, numero_pedido, monto, fecha). Se necesita el listado de clientes con la cantidad de pedidos que cada uno ha realizado. ¿Cuál es correcto?',
+ opts:["from django.db.models import Count; Cliente.objects.group_by('id').annotate(total_pedidos=Count('id'))", "Pedido.objects.values('cliente').annotate(total_pedidos=Count('cliente_id'))", "from django.db.models import Count; Cliente.objects.annotate(total_pedidos=Count('pedidos'))", "from django.db.models import Count; Cliente.objects.aggregate(total_pedidos=Count('pedidos'))"], correct:2,
+ why:'Se pide un <b>listado</b> (una fila por cliente), así que hace falta <code>annotate()</code> — agrega un campo calculado a cada objeto del queryset. <code>aggregate()</code> colapsa todo el queryset en un solo diccionario resumen, perdiendo el listado. <code>Count(\'pedidos\')</code> usa el <code>related_name</code> definido en el FK para contar la relación inversa. <code>group_by()</code> no existe como método de QuerySet en Django — el agrupamiento se logra con <code>values()</code>+<code>annotate()</code>.'},
+
+{topic:'django', q:'Se necesita la suma total de <code>monto_total</code> de todas las ventas. ¿Cuál es correcto?',
+ opts:["Venta.objects.values('monto_total').sum()", "Venta.objects.sum_values(monto_total)", "Venta.objects.all().total_sum('monto_total')", "from django.db.models import Sum; Venta.objects.aggregate(total_ventas=Sum('monto_total'))"], correct:3,
+ why:'<code>aggregate()</code> con <code>Sum(\'campo\')</code> es la forma correcta de agregar sobre todo el queryset. Un <code>QuerySet</code> no tiene métodos <code>.sum()</code>, <code>.sum_values()</code> ni <code>.total_sum()</code> — esos no existen en el ORM de Django.'},
+
+{topic:'django', q:'Se necesita el total de páginas por autor, contando solo libros con <code>activo=True</code>. ¿Cuál es correcto?',
+ opts:["Autor.objects.annotate(total_paginas=Sum('libro__paginas')).filter(libro__activo=False)", "Autor.objects.filter(libro__activo=True).annotate(total_paginas=Sum('libro__paginas'))", "Autor.objects.annotate(total_paginas=Sum('libro__paginas')).filter(libro__activo=True)", "Autor.objects.annotate(total_paginas=Count('libro__paginas')).filter(libro__activo=True)"], correct:1,
+ why:'El orden importa: filtrar <b>antes</b> de <code>annotate()</code> restringe el join usado para la suma, así que <code>Sum</code> solo cuenta libros activos. Filtrar <b>después</b> de <code>annotate()</code> no re-limita lo ya sumado — es un error clásico del ORM. Y <code>Count</code> cuenta filas, no páginas.'},
+
+{topic:'django', q:'Se necesita obtener calificaciones registradas entre el 2026-01-01 y el 2026-06-30. ¿Cuál es correcto?',
+ opts:["filter(fecha_calificacion &gt;= '2026-01-01' and fecha_calificacion &lt;= '2026-06-30')", "filter(fecha_calificacion__in=['2026-01-01', '2026-06-30'])", "filter(fecha_calificacion__between=[2026-01-01, 2026-06-30])", "from datetime import date; filter(fecha_calificacion__range=[date(2026,1,1), date(2026,6,30)])"], correct:3,
+ why:'Django no acepta <code>and</code> de Python dentro de <code>filter()</code> ni un lookup <code>__between</code> (no existe). El lookup correcto para un rango inclusivo es <code>__range=[inicio, fin]</code>, idealmente con objetos <code>date</code> reales en vez de strings sueltos.'},
+
+{topic:'django', q:'Hay un <code>ForeignKey</code> de <code>Libro</code> a <code>Autor</code>. ¿Qué optimiza mejor listar libros junto con el nombre de su autor en una sola consulta SQL con JOIN?',
+ opts:["Libro.objects.all()", "Libro.objects.prefetch_related('autor')", "Libro.objects.select_related('autor')", "Libro.objects.values('autor')"], correct:2,
+ why:'<code>select_related()</code> resuelve relaciones <code>ForeignKey</code>/<code>OneToOne</code> con un <b>JOIN SQL</b> en una sola consulta. <code>prefetch_related()</code> es mejor para M2M o relaciones inversas (hace una segunda query). Sin optimización, acceder a <code>libro.autor.nombre</code> en un loop genera el clásico problema N+1.'},
+
+{topic:'django', q:'¿Cuál es el error de configuración en esta vista?',
+ code:`${K}class${_K} LibroCreateView(CreateView):
+    model = Libro
+    fields = ${S}'__all__'${_S}
+    exclude = [${S}'activo'${_S}]
+    success_url = reverse_lazy(${S}'libro_list'${_S})`,
+ opts:['Falta template_name explícito', 'No se puede usar fields y exclude al mismo tiempo', 'reverse_lazy está mal usado en success_url', 'CreateView no acepta success_url'], correct:1,
+ why:'Django prohíbe combinar <code>fields</code> y <code>exclude</code> en la misma clase (lanza <code>ImproperlyConfigured</code>) — hay que elegir uno de los dos. <code>template_name</code> es opcional: por convención Django busca <code>libro_form.html</code> si no se especifica.'},
+
+{topic:'django', q:'Se necesitan todos los libros que <b>no</b> sean del autor con <code>id=3</code>. ¿Cuál es correcto?',
+ opts:["Libro.objects.exclude(autor_id=3)", "Libro.objects.filter(autor_id__not=3)", "Libro.objects.filter(autor_id != 3)", "Libro.objects.filter(autor_id__ne=3)"], correct:0,
+ why:'<code>exclude()</code> es el método pensado exactamente para negar una condición. Los lookups <code>__not</code> y <code>__ne</code> no existen en el ORM de Django, y <code>!=</code> de Python no es sintaxis válida dentro de los kwargs de <code>filter()</code>.'},
+
+{topic:'django', q:'Modelos <code>Empresa</code>(nombre, descripcion, sector, empleados_count) y <code>Empleado</code>(nombre, apellido, empresa FK, email). Se necesita encontrar todos los empleados cuyo apellido contiene \'García\', \'garcía\' o \'GARCÍA\' (sin importar mayúsculas). ¿Cuál es correcto?',
+ opts:["Empleado.objects.filter(apellido__search='García')", "Empleado.objects.filter(apellido__ilike='%García%')", "Empleado.objects.filter(apellido__contains='García')", "Empleado.objects.filter(apellido__icontains='García')"], correct:3,
+ why:'<code>__icontains</code> hace una búsqueda de subcadena <b>insensible a mayúsculas/minúsculas</b> — exactamente lo pedido. <code>__contains</code> sí distingue mayúsculas (no encontraría "garcía" si buscas "García"). <code>__search</code> requiere full-text search configurado aparte, y <code>__ilike</code> no es un lookup de Django (es sintaxis SQL de Postgres).'},
+
+{topic:'django', q:'Modelos <code>Categoria</code>(nombre, activo) y <code>Producto</code>(nombre, categoria FK, precio, stock, activo). Se necesita incrementar en un 10% el precio de todos los productos de la categoría "Electrónica" que están activos. ¿Cuál es la sentencia correcta?',
+ opts:['Producto.objects.filter(categoria__nombre="Electrónica", activo=True).update(precio=precio*1.1)', 'Producto.objects.filter(categoria__nombre="Electrónica", activo=True).update(precio=F(\'precio\') + (F(\'precio\') * 0.1))', 'Producto.objects.filter(categoria__nombre="Electrónica", activo=False).update(precio=F(\'precio\') + 0.1)', 'Producto.objects.filter(categoria="Electrónica").update(precio=precio*1.1)'], correct:1,
+ why:'Dentro de <code>.update()</code> no puedes referenciar el valor actual del campo con el nombre de la variable de Python (<code>precio</code> no existe ahí) — hace falta <code>F(\'precio\')</code>, que le dice a la base de datos "usa el valor actual de esta columna" en la misma consulta SQL, evitando traer y volver a guardar cada fila una por una. <code>categoria="Electrónica"</code> (sin <code>__nombre</code>) compararía el FK con un texto, no con el nombre relacionado.'},
+
+{topic:'django', q:'<code>PacienteListView</code> filtra resultados con un parámetro de búsqueda \'q\' que llega desde un formulario en la página (asuma que "q" existe en la página html). ¿En qué línea está el error que impide que el filtro funcione?',
+ code:`${K}class${_K} PacienteListView(ListView):
+    model = Paciente
+    template_name = ${S}'paciente_list.html'${_S}
+    context_object_name = ${S}'pacientes'${_S}
+    paginate_by = ${S}10${_S}
+
+${C}1.${_C}    ${K}def${_K} get_queryset(self):
+${C}2.${_C}        queryset = super().get_queryset()
+${C}3.${_C}        query = self.request.POST.get(${S}'q'${_S})
+${C}4.${_C}        ${K}if${_K} query:
+${C}5.${_C}            queryset = queryset.filter(
+${C}6.${_C}                Q(nombre__icontains=query) |
+${C}7.${_C}                Q(cedula__icontains=query) |
+${C}8.${_C}                Q(direccion__icontains=query) |
+${C}9.${_C}                Q(especialidad__icontains=query)
+${C}10.${_C}           )
+${C}11.${_C}       ${K}return${_K} queryset`,
+ opts:['6,7,8,9', '4', '3', '6'], correct:2,
+ why:'Una <code>ListView</code> normalmente recibe el término de búsqueda como parámetro en la URL (<code>?q=...</code>), es decir vía <b>GET</b>, no como envío de formulario POST. La línea 3 usa <code>self.request.POST.get(\'q\')</code> — debería ser <code>self.request.GET.get(\'q\')</code>. El resto del filtrado con <code>Q()</code> encadenados con <code>|</code> está correcto: son varias condiciones OR sobre distintos campos.'},
+
+// ---------------- BANCO EXTRA (preguntas nuevas, no vistas en tus exámenes) ----------------
+{topic:'poo', source:'simulado', q:'¿Qué diferencia principal hay entre un método de instancia y un método de clase (<code>@classmethod</code>) en Python?',
+ opts:['El de instancia recibe <code>self</code> y accede a los datos de ese objeto; el de clase recibe <code>cls</code> y accede a datos compartidos por todas las instancias', 'No hay diferencia real, ambos reciben <code>self</code>', 'Un método de clase no puede ser llamado nunca desde una instancia', 'El método de instancia se ejecuta antes de que exista el objeto'], correct:0,
+ why:'<code>self</code> representa al objeto concreto que hizo la llamada; <code>cls</code> representa a la clase misma, así que un <code>@classmethod</code> típicamente lee o modifica atributos de clase (compartidos), no de una instancia particular.'},
+
+{topic:'poo', source:'simulado', q:'¿Qué imprime <code>print(auto.encender())</code>?',
+ code:`${K}class${_K} Motor:
+    ${K}def${_K} encender(self):
+        ${K}return${_K} ${S}"Motor genérico encendido"${_S}
+
+${K}class${_K} MotorElectrico(Motor):
+    ${K}def${_K} encender(self):
+        ${K}return${_K} ${S}"Motor eléctrico: "${_S} + super().encender()
+
+${K}class${_K} MotorHibrido(MotorElectrico):
+    ${K}def${_K} encender(self):
+        ${K}return${_K} ${S}"Modo híbrido -> "${_S} + super().encender()
+
+auto = MotorHibrido()
+print(auto.encender())`,
+ opts:['Modo híbrido -> Motor genérico encendido', 'Modo híbrido -> Motor eléctrico: Motor genérico encendido', 'Motor eléctrico: Modo híbrido -> Motor genérico encendido', 'Motor genérico encendido'], correct:1,
+ why:'Cada nivel llama a <code>super().encender()</code> antes de anteponer su propio texto, encadenando los tres niveles en orden: MotorHibrido → MotorElectrico → Motor.'},
+
+{topic:'poo', source:'simulado', q:'¿En qué línea está el error que impide que <code>aplicar_descuento()</code> funcione al llamarla como <code>p.aplicar_descuento(10)</code>?',
+ code:`${C}1.${_C} ${K}class${_K} Producto:
+${C}2.${_C}     ${K}def${_K} __init__(self, nombre, precio):
+${C}3.${_C}         self.nombre = nombre
+${C}4.${_C}         self.precio = precio
+${C}5.${_C}     ${K}def${_K} aplicar_descuento(porcentaje):
+${C}6.${_C}         self.precio = self.precio - (self.precio * porcentaje / ${S}100${_S})
+${C}7.${_C}         ${K}return${_K} self.precio`,
+ opts:['3', '5', '6', '7'], correct:1,
+ why:'Al método le falta el parámetro <code>self</code>. Como <code>p.aplicar_descuento(10)</code> pasa automáticamente <code>p</code> como primer argumento, este termina asignado a <code>porcentaje</code> y sobra el <code>10</code> — Python lanza <code>TypeError: aplicar_descuento() takes 1 positional argument but 2 were given</code>.'},
+
+{topic:'poo', source:'simulado', q:'Completar la clase para que <code>total_cursos</code> cuente cuántos objetos <code>Curso</code> se han creado:',
+ code:`${K}class${_K} Curso:
+    total_cursos = ${S}0${_S}
+
+    ${K}def${_K} __init__(self, nombre):
+        self.nombre = nombre
+        ____.total_cursos += ${S}1${_S}
+
+    ${K}@____${_K}
+    ${K}def${_K} cuantos_cursos(cls):
+        ${K}return${_K} ${S}f"Cursos creados: {cls.total_cursos}"${_S}`,
+ opts:['self; staticmethod', 'Curso; classmethod', 'cls; classmethod', 'Curso; staticmethod'], correct:1,
+ why:'Dentro de <code>__init__</code> conviene usar el nombre de la clase (<code>Curso.total_cursos += 1</code>) para modificar el atributo compartido — <code>cls</code> todavía no existe ahí, solo dentro de un <code>@classmethod</code>. Y el método que recibe <code>cls</code> como primer parámetro necesita el decorador <code>@classmethod</code>.'},
+
+{topic:'poo', source:'simulado', type:'match', q:'Relaciona cada tipo de relación entre clases con su definición:',
+ pairs:[
+   ['Herencia', 'Una clase extiende el comportamiento de otra (relación "es un")'],
+   ['Composición', 'Un objeto crea y controla el ciclo de vida de otro objeto que contiene (relación "tiene un" fuerte)'],
+   ['Agregación', 'Un objeto mantiene una referencia a otro que existe independientemente (relación "tiene un" débil)'],
+   ['Realización', 'Una clase implementa el contrato definido por una interfaz o clase abstracta'],
+ ],
+ why:'Herencia = "es un" (extends). Composición = posesión fuerte, el contenedor crea y destruye al contenido. Agregación = posesión débil, el objeto referenciado se crea fuera y sobrevive independientemente. Realización = implementar el contrato de una interfaz/clase abstracta.'},
+
+{topic:'poo', source:'simulado', q:'¿Qué imprime <code>print(inv.resumen())</code>?',
+ code:`${K}class${_K} Inventario:
+    ${K}def${_K} __init__(self, items):
+        self.items = items
+    ${K}def${_K} resumen(self):
+        caros = [nombre ${K}for${_K} nombre, precio ${K}in${_K} self.items.items() ${K}if${_K} precio > ${S}50${_S}]
+        ${K}return${_K} {i: nombre ${K}for${_K} i, nombre ${K}in${_K} enumerate(caros) ${K}if${_K} i % ${S}2${_S} == ${S}1${_S}}
+
+inv = Inventario({${S}"mouse"${_S}: ${S}15${_S}, ${S}"teclado"${_S}: ${S}60${_S}, ${S}"monitor"${_S}: ${S}200${_S}, ${S}"cable"${_S}: ${S}5${_S}, ${S}"webcam"${_S}: ${S}80${_S}})
+print(inv.resumen())`,
+ opts:["{0: 'teclado'}", "{1: 'monitor'}", "{0: 'teclado', 2: 'webcam'}", "{1: 'monitor', 3: 'cable'}"], correct:1,
+ why:'Filtrando por <code>precio &gt; 50</code> (en orden de inserción del dict) queda <code>[\'teclado\', \'monitor\', \'webcam\']</code>. Al enumerar: 0→teclado, 1→monitor, 2→webcam. Solo se queda el índice impar (1) → <code>{1: \'monitor\'}</code>.'},
+
+{topic:'poo', source:'simulado', q:'¿Qué ocurre si una subclase no implementa un método marcado con <code>@abstractmethod</code> en su clase base <code>(ABC)</code>?',
+ opts:['Python lanza <code>TypeError</code> al intentar instanciar la subclase', 'El método se hereda automáticamente vacío, sin dar error', 'No pasa nada al instanciar; solo falla si se llama ese método específico', 'Se muestra un warning pero permite instanciar con normalidad'], correct:0,
+ why:'Una clase que hereda de <code>ABC</code> y deja algún <code>@abstractmethod</code> sin sobreescribir sigue siendo abstracta — Python impide instanciarla directamente y lanza <code>TypeError: Can\'t instantiate abstract class ... with abstract method ...</code>.'},
+
+{topic:'poo', source:'simulado', q:'¿Qué ocurre al ejecutar la última línea, <code>p.stock = -3</code>?',
+ code:`${K}class${_K} Producto:
+    ${K}def${_K} __init__(self, nombre, stock):
+        self.nombre = nombre
+        self._stock = stock
+
+    ${K}@property${_K}
+    ${K}def${_K} stock(self):
+        ${K}return${_K} self._stock
+
+    ${K}@stock.setter${_K}
+    ${K}def${_K} stock(self, valor):
+        ${K}if${_K} valor < ${S}0${_S}:
+            ${K}raise${_K} ValueError(${S}"Stock no puede ser negativo"${_S})
+        self._stock = valor
+
+p = Producto(${S}"Mouse"${_S}, ${S}10${_S})
+p.stock = ${S}5${_S}
+print(p.stock)
+p.stock = -${S}3${_S}`,
+ opts:['Se lanza ValueError("Stock no puede ser negativo")', 'El stock queda guardado en -3 sin problema', 'No pasa nada, la asignación se ignora silenciosamente', 'Error de sintaxis, no se puede usar @stock.setter'], correct:0,
+ why:'El setter valida antes de guardar: si <code>valor &lt; 0</code>, lanza <code>ValueError</code> explícitamente en vez de dejar guardar un stock inválido. Antes de esa línea se imprime <code>5</code> (el valor asignado correctamente).'},
+
+{topic:'poo', source:'simulado', q:'¿En qué línea está el error de esta clase (falla al acceder a <code>empleado.nombre</code> después de crearlo)?',
+ code:`${C}1.${_C} ${K}class${_K} Empleado:
+${C}2.${_C}     ${K}def${_K} __init__(self, nombre, salario):
+${C}3.${_C}         nombre = nombre
+${C}4.${_C}         self.salario = salario
+${C}5.${_C}     ${K}def${_K} subir_salario(self, monto):
+${C}6.${_C}         self.salario += monto`,
+ opts:['3', '4', '5', '6'], correct:0,
+ why:'La línea 3 asigna <code>nombre</code> a una variable local (que se descarta al terminar <code>__init__</code>) en vez de guardarlo en el objeto — debía ser <code>self.nombre = nombre</code>. Por eso <code>empleado.nombre</code> lanza <code>AttributeError</code>.'},
+
+{topic:'poo', source:'simulado', q:'Completar <code>Estudiante</code> para que reutilice el constructor de <code>Persona</code>:',
+ code:`${K}class${_K} Persona:
+    ${K}def${_K} __init__(self, nombre, edad):
+        self.nombre = nombre
+        self.edad = edad
+
+${K}class${_K} Estudiante(Persona):
+    ${K}def${_K} __init__(self, nombre, edad, carrera):
+        ____
+        self.carrera = carrera`,
+ opts:['Persona.__init__(nombre, edad)', 'super().__init__(nombre, edad)', 'super(self).__init__(nombre, edad)', 'self.__init__(nombre, edad)'], correct:1,
+ why:'<code>super().__init__(nombre, edad)</code> es la forma correcta en Python 3 — resuelve automáticamente cuál es la clase padre y le pasa <code>self</code> de forma implícita. <code>Persona.__init__(nombre, edad)</code> sin pasar <code>self</code> explícito confundiría <code>nombre</code> con el propio objeto.'},
+
+{topic:'poo', source:'simulado', q:'¿Qué principio de POO se viola si una clase expone atributos públicos que cualquier código externo puede modificar sin ninguna validación?',
+ opts:['Encapsulación', 'Herencia', 'Polimorfismo', 'Abstracción'], correct:0,
+ why:'La encapsulación busca proteger el estado interno de un objeto, exponiendo solo lo necesario (idealmente mediante métodos o <code>@property</code> con validación) en vez de dejar atributos abiertos a modificaciones arbitrarias.'},
+
+{topic:'django', source:'simulado', q:'Completar <code>VehiculoCreateView</code>:',
+ code:`${K}class${_K} VehiculoCreateView(CreateView):
+    model = Vehiculo
+    fields = [${S}'placa'${_S}, ${S}'modelo'${_S}, ${S}'anio'${_S}]
+    success_url = ____`,
+ opts:["reverse_lazy('vehiculo_list')", "redirect('vehiculo_list')", "'vehiculo_list'", "reverse('vehiculo_list')"], correct:0,
+ why:'<code>success_url</code> es un atributo de clase evaluado al importar el módulo, así que necesita <code>reverse_lazy()</code> (resolución diferida). <code>reverse()</code> a secas fallaría en ese momento porque las URLs podrían no estar cargadas aún, y <code>redirect()</code> está pensado para usarse dentro de un método, no como atributo.'},
+
+{topic:'django', source:'simulado', q:'¿En qué línea está el error raíz que impide que esta vista funcione?',
+ code:`${C}1.${_C} ${K}def${_K} detalle_libro(request, pk):
+${C}2.${_C}     libro = Libro.objects.filter(pk=pk)
+${C}3.${_C}     prestamos = Prestamo.objects.filter(libro=libro)
+${C}4.${_C}     context = {${S}'libro'${_S}: libro, ${S}'prestamos'${_S}: prestamos}
+${C}5.${_C}     ${K}return${_K} render(request, ${S}'libro_detalle.html'${_S}, context)`,
+ opts:['2', '3', '4', '5'], correct:0,
+ why:'<code>filter(pk=pk)</code> devuelve un <b>QuerySet</b> (una lista de resultados), no un objeto <code>Libro</code> individual — debería ser <code>get_object_or_404(Libro, pk=pk)</code>. Ese error se arrastra a la línea 3: filtrar <code>libro=libro</code> con un QuerySet en vez de una instancia también falla.'},
+
+{topic:'django', source:'simulado', q:'Modelos <code>Curso</code>(nombre) y <code>Matricula</code>(curso FK, estudiante FK, calificacion). Se necesita el promedio de calificación de las matrículas de un curso específico. ¿Cuál es correcto?',
+ opts:["from django.db.models import Avg; Matricula.objects.filter(curso=curso).aggregate(promedio=Avg('calificacion'))", "Matricula.objects.filter(curso=curso).average('calificacion')", "from django.db.models import Sum; Matricula.objects.filter(curso=curso).aggregate(promedio=Sum('calificacion'))", "Matricula.objects.filter(curso=curso).annotate(promedio=Avg('calificacion'))"], correct:0,
+ why:'<code>Avg(\'campo\')</code> dentro de <code>aggregate()</code> calcula el promedio sobre todo el queryset filtrado, devolviendo un diccionario con un solo valor. <code>Sum</code> sumaría en vez de promediar. <code>annotate()</code> agregaría el promedio por cada fila individual, no un único resultado — no es lo que se pide aquí. <code>.average()</code> no existe en el ORM.'},
+
+{topic:'django', source:'simulado', q:'Se necesita una lista plana (no de diccionarios ni tuplas) con los nombres de todos los cursos. ¿Cuál es correcto?',
+ opts:["Curso.objects.values_list('nombre', flat=True)", "Curso.objects.values('nombre')", "Curso.objects.values_list('nombre')", "Curso.objects.all().nombre"], correct:0,
+ why:'<code>values_list(\'campo\', flat=True)</code> aplana el resultado a una lista simple de valores. Sin <code>flat=True</code>, <code>values_list()</code> devuelve una lista de tuplas de un solo elemento, y <code>values()</code> devuelve diccionarios. <code>.all().nombre</code> no es válido: un QuerySet no tiene ese atributo.'},
+
+{topic:'django', source:'simulado', q:'¿En qué línea está el error que hace que la validación de <code>calificacion</code> nunca se ejecute?',
+ code:`${C}1.${_C} ${K}class${_K} MatriculaForm(forms.ModelForm):
+${C}2.${_C}     ${K}class${_K} Meta:
+${C}3.${_C}         model = Matricula
+${C}4.${_C}         fields = [${S}'curso'${_S}, ${S}'estudiante'${_S}, ${S}'calificacion'${_S}]
+${C}5.${_C}         widgets = {
+${C}6.${_C}             ${S}'curso'${_S}: forms.Select(),
+${C}7.${_C}             ${S}'calificacion'${_S}: forms.NumberInput(attrs={${S}'step'${_S}: ${S}'0.01'${_S}}),
+${C}8.${_C}         }
+${C}9.${_C}     ${K}def${_K} clean_Calificacion(self):
+${C}10.${_C}        calificacion = self.cleaned_data[${S}'calificacion'${_S}]
+${C}11.${_C}        ${K}if${_K} calificacion < ${S}0${_S} ${K}or${_K} calificacion > ${S}10${_S}:
+${C}12.${_C}            ${K}raise${_K} forms.ValidationError(${S}'La calificación debe estar entre 0 y 10'${_S})
+${C}13.${_C}        ${K}return${_K} calificacion`,
+ opts:['4', '6', '9', '11'], correct:2,
+ why:'Django llama automáticamente al método <code>clean_&lt;nombre_del_campo&gt;</code> — y el nombre del campo es <code>calificacion</code>, en minúsculas. El método está definido como <code>clean_Calificacion</code> (con C mayúscula), así que Django nunca lo encuentra ni lo ejecuta: valores fuera de 0–10 pasan la validación sin ningún error.'},
+
+{topic:'django', source:'simulado', q:'Se necesita cada curso con la cantidad de estudiantes <b>distintos</b> matriculados (si un estudiante se matriculó dos veces por error, contarlo una sola vez). ¿Cuál es correcto?',
+ opts:["Curso.objects.annotate(total_estudiantes=Count('matricula__estudiante', distinct=True))", "Curso.objects.annotate(total_estudiantes=Count('matricula__estudiante'))", "Curso.objects.annotate(total_estudiantes=Sum('matricula__estudiante', distinct=True))", "Curso.objects.aggregate(total_estudiantes=Count('matricula__estudiante', distinct=True))"], correct:0,
+ why:'<code>distinct=True</code> dentro de <code>Count()</code> evita contar duplicados (mismo estudiante matriculado más de una vez). Sin él, <code>Count()</code> contaría cada fila de <code>Matricula</code> aunque el estudiante se repita. <code>Sum</code> no tiene sentido para contar filas, y <code>aggregate()</code> daría un solo total global, no uno por curso.'},
+
+{topic:'django', source:'simulado', q:'¿En qué línea está el error que provoca <code>NoReverseMatch</code> al eliminar un libro?',
+ code:`urlpatterns = [
+    path(${S}'libros/'${_S}, views.libro_list, name=${S}'libro_list'${_S}),
+    path(${S}'libros/&lt;int:pk&gt;/'${_S}, views.libro_detalle, name=${S}'libro_detail'${_S}),
+]
+
+${C}8.${_C} ${K}def${_K} eliminar_libro(request, pk):
+${C}9.${_C}     libro = get_object_or_404(Libro, pk=pk)
+${C}10.${_C}    libro.delete()
+${C}11.${_C}    ${K}return${_K} redirect(${S}'libro_detalle'${_S})`,
+ opts:['9', '10', '11', 'Ninguna, el código es correcto'], correct:2,
+ why:'La URL fue registrada con <code>name=\'libro_detail\'</code> (sin la <b>e</b> final), pero la línea 11 redirige a <code>\'libro_detalle\'</code> — el nombre no coincide exactamente, así que Django no puede resolver esa ruta y lanza <code>NoReverseMatch</code>.'},
+
+{topic:'django', source:'simulado', q:'Se necesitan los libros ordenados por fecha de publicación, del más reciente al más antiguo. ¿Cuál es correcto?',
+ opts:["Libro.objects.order_by('-fecha_publicacion')", "Libro.objects.order_by('fecha_publicacion')", "Libro.objects.sort('-fecha_publicacion')", "Libro.objects.order_by('fecha_publicacion desc')"], correct:0,
+ why:'El signo <code>-</code> antes del nombre del campo invierte el orden (descendente) en <code>order_by()</code>. Sin él, el orden sería ascendente (más antiguo primero). <code>.sort()</code> no existe en el ORM de Django, y <code>\'fecha_publicacion desc\'</code> no es sintaxis válida — esa forma es de SQL crudo, no de Django.'},
+
+{topic:'django', source:'simulado', q:'¿Cuál mixin completa correctamente esta vista para exigir que el usuario esté autenticado antes de ver el listado de préstamos?',
+ code:`${K}class${_K} PrestamoListView(____, ListView):
+    model = Prestamo
+    template_name = ${S}'prestamo_list.html'${_S}
+    login_url = ${S}'login'${_S}`,
+ opts:['LoginRequiredMixin', 'PermissionRequiredMixin', 'UserPassesTestMixin', 'AuthenticationMixin'], correct:0,
+ why:'<code>LoginRequiredMixin</code> es el mixin estándar de Django para exigir sesión iniciada; debe ir <b>antes</b> de <code>ListView</code> en la herencia para que intercepte <code>dispatch()</code> antes que la vista genérica. <code>PermissionRequiredMixin</code>/<code>UserPassesTestMixin</code> exigen permisos o condiciones extra, no solo estar logueado. <code>AuthenticationMixin</code> no existe en Django.'},
+
+{topic:'django', source:'simulado', q:'Se necesita verificar de forma eficiente si existe al menos un préstamo activo (sin fecha de devolución) para un libro, sin traer registros innecesarios a memoria. ¿Cuál es correcto?',
+ opts:["Prestamo.objects.filter(libro=libro, fecha_devolucion__isnull=True).exists()", "len(Prestamo.objects.filter(libro=libro, fecha_devolucion__isnull=True)) > 0", "Prestamo.objects.get(libro=libro, fecha_devolucion__isnull=True) is not None", "Prestamo.objects.filter(libro=libro, fecha_devolucion__isnull=True) != []"], correct:0,
+ why:'<code>.exists()</code> genera una consulta SQL optimizada (<code>SELECT 1 ... LIMIT 1</code>) sin traer los registros completos. <code>len(...)</code> obliga a evaluar todo el queryset en memoria primero. <code>.get()</code> lanza una excepción si no encuentra nada o si encuentra más de uno — no sirve para chequear existencia. Comparar un QuerySet con <code>!= []</code> tampoco es válido: un QuerySet nunca es literalmente una lista vacía.'},
+
+{topic:'django', source:'simulado', q:'Bajo alta concurrencia (muchas visitas simultáneas), ¿qué línea de esta vista puede hacer que se pierdan incrementos del contador de visitas?',
+ code:`${C}1.${_C} ${K}def${_K} detalle_libro(request, pk):
+${C}2.${_C}     libro = get_object_or_404(Libro, pk=pk)
+${C}3.${_C}     libro.visitas = libro.visitas + ${S}1${_S}
+${C}4.${_C}     libro.save()
+${C}5.${_C}     ${K}return${_K} render(request, ${S}'libro_detalle.html'${_S}, {${S}'libro'${_S}: libro})`,
+ opts:['3', '2', '4', '5'], correct:0,
+ why:'Leer <code>libro.visitas</code> y sumarle 1 en Python (línea 3) crea una condición de carrera: si dos requests leen el mismo valor antes de que cualquiera guarde, ambos incrementos se basan en el mismo número inicial y uno se pierde. La solución es delegar la suma a la base de datos con <code>libro.visitas = F(\'visitas\') + 1</code> (o <code>.update(visitas=F(\'visitas\')+1)</code>), que se ejecuta de forma atómica en el motor de datos.'},
+
+// ---------------- BANCO EXTRA — basadas en tu proyecto real (sales_project / billing) ----------------
+{topic:'django', source:'simulado', q:'En tu proyecto, <code>Product.brand</code> es un <code>ForeignKey(Brand, on_delete=models.PROTECT)</code>. ¿Qué ocurre si intentas eliminar una <code>Brand</code> que todavía tiene <code>Product</code>s asociados?',
+ opts:['Django lanza <code>ProtectedError</code> y no permite eliminar la Brand mientras existan productos relacionados', 'Se eliminan en cascada todos los productos de esa marca', 'Los productos quedan con <code>brand=NULL</code> automáticamente', 'Se elimina la Brand y los productos quedan huérfanos sin avisar'], correct:0,
+ why:'<code>PROTECT</code> es justo lo opuesto a <code>CASCADE</code>: impide el borrado del objeto padre si existen objetos hijos que dependen de él, lanzando <code>ProtectedError</code>. En un sistema de ventas esto tiene sentido — no quieres poder borrar una marca "por accidente" y perder la trazabilidad de los productos ya vendidos.'},
+
+{topic:'django', source:'simulado', q:'<code>Customer</code> y <code>CustomerProfile</code> están relacionados con <code>OneToOneField(Customer, on_delete=CASCADE, related_name=\'profile\')</code>. Si un <code>Customer</code> existe pero <b>no</b> tiene un <code>CustomerProfile</code> creado, ¿qué ocurre al acceder a <code>client.profile.credit_limit</code>?',
+ opts:['Se lanza una excepción (RelatedObjectDoesNotExist, subclase de CustomerProfile.DoesNotExist)', '<code>client.profile</code> devuelve <code>None</code> silenciosamente', 'Devuelve <code>0</code> por defecto', 'Django crea automáticamente un CustomerProfile vacío al acceder'], correct:0,
+ why:'A diferencia de una <code>ForeignKey</code>, el descriptor inverso de <code>OneToOneField</code> no devuelve <code>None</code> si no existe el objeto relacionado — lanza una excepción. Por eso en la práctica conviene usar <code>get_object_or_404</code> o comprobar con <code>hasattr(client, \'profile\')</code> antes de acceder directamente.'},
+
+{topic:'django', source:'simulado', q:'En <code>ProductAdmin</code> se usa <code>filter_horizontal = [\'suppliers\']</code>. ¿Para qué sirve, dado que <code>suppliers</code> es un <code>ManyToManyField</code>?',
+ opts:['Mejora la interfaz del admin para el campo M2M: muestra dos cajas con buscador para mover proveedores entre "disponibles" y "seleccionados", en vez de un <select multiple> difícil de usar', 'Ordena los proveedores alfabéticamente en la tabla', 'Convierte el campo M2M en un ForeignKey de solo un proveedor', 'Oculta el campo suppliers del formulario del admin'], correct:0,
+ why:'<code>filter_horizontal</code> (y su variante vertical <code>filter_vertical</code>) es una opción de <code>ModelAdmin</code> pensada específicamente para campos <code>ManyToManyField</code> con muchas opciones — sin ella, Django muestra un simple <select multiple> incómodo de usar con más de unos pocos elementos.'},
+
+{topic:'django', source:'simulado', q:'¿Qué pasaría si en <code>InvoiceDetail.save()</code> se olvida la última línea (<code>super().save(*args, **kwargs)</code>)?',
+ code:`${K}class${_K} InvoiceDetail(models.Model):
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name=${S}'details'${_S})
+    product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name=${S}'invoice_details'${_S})
+    quantity = models.IntegerField(default=${S}1${_S})
+    unit_price = models.DecimalField(max_digits=${S}12${_S}, decimal_places=${S}2${_S})
+    subtotal = models.DecimalField(max_digits=${S}12${_S}, decimal_places=${S}2${_S}, default=${S}0${_S})
+
+    ${K}def${_K} save(self, *args, **kwargs):
+        self.subtotal = self.quantity * self.unit_price
+        ${C}# ¿y si falta esta línea?${_C}
+        super().save(*args, **kwargs)`,
+ opts:['El objeto nunca se guarda realmente en la base de datos — el <code>subtotal</code> calculado se pierde, aunque no haya ningún error visible', 'Django guarda igual, solo que sin recalcular subtotal', 'Se lanza un error de inmediato al guardar', 'No cambia nada, super().save() es opcional siempre'], correct:0,
+ why:'Al sobreescribir <code>save()</code>, reemplazas por completo el comportamiento heredado. Si no llamas explícitamente a <code>super().save(*args, **kwargs)</code>, nunca se ejecuta el <code>INSERT</code>/<code>UPDATE</code> real en la base de datos — el cálculo de <code>subtotal</code> queda solo en memoria y se pierde quietamente, sin ningún error que te avise.'},
+
+{topic:'django', source:'simulado', q:'¿Qué logra este bucle en el <code>__init__</code> de <code>SignUpForm</code>?',
+ code:`${K}class${_K} SignUpForm(UserCreationForm):
+    ${C}# ... campos ...${_C}
+    ${K}def${_K} __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        ${K}for${_K} f ${K}in${_K} self.fields:
+            self.fields[f].widget.attrs[${S}'class'${_S}] = ${S}'form-control'${_S}`,
+ opts:['Agrega automáticamente la clase CSS de Bootstrap "form-control" a TODOS los campos del formulario, sin tener que declarar cada widget a mano', 'Valida que todos los campos tengan al menos una clase asignada', 'Elimina todos los campos del formulario y los vuelve a crear', 'Ordena los campos alfabéticamente por su clase CSS'], correct:0,
+ why:'<code>self.fields</code> es un diccionario con todos los campos del formulario. Iterarlo y asignar <code>widget.attrs[\'class\']</code> a cada uno es un atajo común para no repetir <code>forms.TextInput(attrs={\'class\':\'form-control\'})</code> campo por campo en un <code>UserCreationForm</code>, cuyos campos ya vienen definidos por Django.'},
+
+{topic:'django', source:'simulado', q:'Tu app <code>billing</code> define <code>app_name = \'billing\'</code> en su <code>urls.py</code>. ¿En qué línea está el error de esta vista de creación de marcas?',
+ code:`${C}1.${_C} ${K}def${_K} brand_create(request):
+${C}2.${_C}     ${K}if${_K} request.method == ${S}'POST'${_S}:
+${C}3.${_C}         form = BrandForm(request.POST)
+${C}4.${_C}         ${K}if${_K} form.is_valid():
+${C}5.${_C}             form.save()
+${C}6.${_C}             messages.success(request, ${S}'Brand created!'${_S})
+${C}7.${_C}             ${K}return${_K} redirect(${S}'brand_list'${_S})
+${C}8.${_C}     ${K}else${_K}:
+${C}9.${_C}         form = BrandForm()
+${C}10.${_C}    ${K}return${_K} render(request, ${S}'billing/brand_form.html'${_S}, {${S}'form'${_S}:form, ${S}'title'${_S}:${S}'Create Brand'${_S}})`,
+ opts:['5', '6', '7', '9'], correct:2,
+ why:'Como <code>billing/urls.py</code> declara <code>app_name = \'billing\'</code>, Django registra todas sus rutas bajo el namespace <code>billing:</code>. <code>redirect(\'brand_list\')</code> sin el prefijo busca un nombre global <code>brand_list</code> que no existe — lanza <code>NoReverseMatch</code>. Debe ser <code>redirect(\'billing:brand_list\')</code>.'},
+
+{topic:'django', source:'simulado', q:'En tu proyecto, el mixin personalizado <code>StaffRequiredMixin</code> vive en <code>shared/mixins.py</code>. Dado el orden real usado en el curso, <code>class ProductGroupDeleteView(LoginRequiredMixin, StaffRequiredMixin, DeleteView)</code>, ¿por qué <code>LoginRequiredMixin</code> va primero y no al revés?',
+ opts:['Así, un usuario anónimo es redirigido primero al login; si <code>StaffRequiredMixin</code> fuera primero, un usuario ni siquiera logueado recibiría el mensaje confuso de "necesitas ser staff" en vez de que le pidan iniciar sesión', 'El orden de los mixins nunca importa en Python', '<code>StaffRequiredMixin</code> no puede combinarse con <code>LoginRequiredMixin</code> bajo ninguna circunstancia', 'Django exige alfabéticamente que L vaya antes que S'], correct:0,
+ why:'Python resuelve <code>dispatch()</code> siguiendo el MRO de izquierda a derecha. Poniendo <code>LoginRequiredMixin</code> primero, un usuario anónimo se topa primero con el chequeo de sesión (mensaje claro: "inicia sesión"). Si <code>StaffRequiredMixin</code> fuera primero, ese mismo usuario anónimo recibiría el mensaje de "necesitas ser staff" — técnicamente lo sigue bloqueando, pero con un mensaje engañoso sobre la causa real.'},
+
+{topic:'django', source:'simulado', q:'El decorador <code>audit_action</code> de <code>shared/decorators.py</code> tiene <b>tres</b> funciones anidadas: <code>audit_action → decorator → wrapper</code>. ¿Por qué hacen falta tres niveles en vez de uno solo?',
+ code:`${K}def${_K} audit_action(action_name):
+    ${K}def${_K} decorator(view_func):
+        ${K}@wraps${_K}(view_func)
+        ${K}def${_K} wrapper(request, *args, **kwargs):
+            ${C}# ... registra la auditoría ...${_C}
+            ${K}return${_K} view_func(request, *args, **kwargs)
+        ${K}return${_K} wrapper
+    ${K}return${_K} decorator
+
+${C}# uso:${_C}
+${K}@login_required${_K}
+${K}@audit_action(${S}"CREATE_BRAND"${_S})
+${K}def${_K} brand_create(request): ...`,
+ opts:['Porque es un decorador que recibe un parámetro (<code>"CREATE_BRAND"</code>): el nivel externo captura ese argumento, el nivel medio recibe la vista a decorar, y el interno (<code>wrapper</code>) es el que se ejecuta en cada request', 'Es un error del curso, debería tener solo dos niveles', 'Los tres niveles son intercambiables y da igual el orden', 'Django exige exactamente tres niveles para cualquier decorador'], correct:0,
+ why:'Un decorador simple como <code>@login_required</code> solo necesita recibir la función (un nivel). Pero para aceptar un argumento propio como <code>@audit_action("CREATE_BRAND")</code>, se necesita una capa extra: <code>audit_action(action_name)</code> devuelve <code>decorator</code>, que a su vez recibe la vista y devuelve <code>wrapper</code>, la función real que Django ejecuta en cada petición.'},
+
+{topic:'django', source:'simulado', q:'¿Qué pasaría si se quita <code>@wraps(view_func)</code> del decorador <code>audit_action</code>?',
+ opts:['La función decorada perdería su <code>__name__</code> y <code>__doc__</code> originales — herramientas de depuración, el admin o cualquier introspección mostrarían "wrapper" en vez del nombre real de la vista', 'El decorador dejaría de funcionar por completo y lanzaría un error', 'Las vistas decoradas ya no podrían recibir argumentos', 'No cambiaría nada visible en ningún caso'], correct:0,
+ why:'<code>functools.wraps</code> copia metadatos (<code>__name__</code>, <code>__doc__</code>, etc.) de la función original hacia la función que la envuelve. Sin él, cada vista decorada con <code>@audit_action(...)</code> se llamaría literalmente <code>"wrapper"</code> para cualquier herramienta que inspeccione <code>__name__</code>, dificultando la depuración.'},
+
+{topic:'django', source:'simulado', q:'Completar el modelo <code>Customer</code> para que use el validador personalizado de cédula/RUC ecuatoriana:',
+ code:`${K}from${_K} shared.validators ${K}import${_K} validate_cedula_ec
+
+${K}class${_K} Customer(models.Model):
+    dni = models.CharField(
+        max_length=${S}13${_S},
+        unique=${K}True${_K},
+        verbose_name=${S}'DNI / RUC'${_S},
+        ____
+    )`,
+ opts:["validators=[validate_cedula_ec]", "validate=validate_cedula_ec", "clean=validate_cedula_ec", "validators=validate_cedula_ec()"], correct:0,
+ why:'Los campos de Django aceptan una lista de funciones en el parámetro <code>validators</code>, cada una recibiendo el valor del campo y lanzando <code>ValidationError</code> si es inválido. Debe pasarse la función misma (sin llamarla con <code>()</code>) dentro de una lista, no el resultado de ejecutarla.'},
+
+{topic:'django', source:'simulado', q:'Dentro de un validador personalizado como <code>validate_cedula_ec</code>, cuando el dato no cumple una regla, ¿qué debe hacer el validador?',
+ opts:['Lanzar (<code>raise</code>) <code>ValidationError</code> con un mensaje descriptivo', 'Retornar <code>False</code>', 'Retornar <code>None</code>', 'Imprimir un mensaje de error con <code>print()</code> y continuar'], correct:0,
+ why:'Los validadores de Django se comunican con el framework lanzando <code>ValidationError</code>, no devolviendo un booleano — es un error común pensar que basta con <code>return False</code>. Django atrapa la excepción y la asocia automáticamente al campo correspondiente en el formulario.'},
+
+{topic:'django', source:'simulado', q:'¿Por qué la carpeta <code>shared/</code> (con <code>mixins.py</code>, <code>decorators.py</code>, <code>validators.py</code>) <b>no</b> se agrega a <code>INSTALLED_APPS</code> en <code>settings.py</code>?',
+ opts:['Porque no es una app de Django — no tiene modelos, migraciones ni vistas registradas; es solo un paquete Python normal con código reutilizable que se importa donde haga falta', 'Porque Django la detecta automáticamente sin necesidad de registrarla', 'Porque solo se puede usar dentro de la misma carpeta donde está definida', 'Es un error del curso, sí debería estar en INSTALLED_APPS'], correct:0,
+ why:'<code>INSTALLED_APPS</code> es para apps de Django (con posibles modelos/migraciones/templates propios). <code>shared/</code> es simplemente un paquete Python (con su <code>__init__.py</code>) que agrupa utilidades reutilizables — se importa igual que cualquier módulo (<code>from shared.mixins import StaffRequiredMixin</code>), sin necesidad de registro.'},
+
+{topic:'django', source:'simulado', q:'Se necesitan los productos activos que además tengan poco stock (menor a 10) <b>o</b> que sean de la marca "Samsung". ¿Cuál es la sentencia correcta?',
+ opts:["Product.objects.filter(Q(is_active=True) & (Q(stock__lt=10) | Q(brand__name='Samsung')))", "Product.objects.filter(is_active=True and (stock__lt=10 or brand__name='Samsung'))", "Product.objects.filter(Q(is_active=True) & Q(stock__lt=10) | Q(brand__name='Samsung'))", "Product.objects.filter(Q(is_active=True), Q(stock__lt=10), Q(brand__name='Samsung'))"], correct:0,
+ why:'Se necesitan paréntesis para agrupar el OR (<code>stock bajo</code> O <code>marca Samsung</code>) y que ese grupo se combine con AND junto a <code>is_active=True</code>. Sin paréntesis (opción c), <code>&</code> tiene mayor precedencia que <code>|</code>, así que se agruparía como <code>(activo AND stock_bajo) OR samsung</code> — cambiando el significado. <code>and</code>/<code>or</code> de Python no funcionan dentro de <code>filter()</code>.'},
+
+{topic:'django', source:'simulado', q:'<code>product_list.html</code> muestra <code>item.brand.name</code> y <code>item.group.name</code> para cada producto en la tabla. ¿Cómo optimizarías <code>ProductListView.get_queryset()</code> para evitar el problema N+1?',
+ opts:["return Product.objects.select_related('brand', 'group')", "return Product.objects.prefetch_related('brand', 'group')", "return Product.objects.values('brand', 'group')", "No hace falta optimizar nada, Django ya lo hace automáticamente"], correct:0,
+ why:'<code>brand</code> y <code>group</code> son <code>ForeignKey</code> — <code>select_related()</code> los resuelve con un <b>JOIN SQL</b> en una sola consulta, y acepta varios campos separados por coma. <code>prefetch_related()</code> es la opción correcta para M2M o relaciones inversas, no para FK directas. Sin optimizar, cada fila de la tabla dispararía una consulta extra por <code>brand</code> y otra por <code>group</code> — el clásico problema N+1.'},
+
+{topic:'django', source:'simulado', q:'Esa misma plantilla también itera <code>item.suppliers.all</code> (relación <code>ManyToManyField</code>) para mostrar los proveedores de cada producto. ¿Qué método de optimización corresponde aquí?',
+ opts:["Product.objects.select_related('brand', 'group').prefetch_related('suppliers')", "Product.objects.select_related('brand', 'group', 'suppliers')", "Product.objects.prefetch_related('brand', 'group', 'suppliers')", "Product.objects.only('suppliers')"], correct:0,
+ why:'<code>select_related()</code> solo funciona con relaciones que resuelven a UN solo objeto por JOIN (FK, O2O) — no sirve para M2M. Para <code>suppliers</code> (M2M) hace falta <code>prefetch_related()</code>, que hace una consulta aparte y luego "une" los resultados en Python. Ambas optimizaciones se pueden combinar en la misma queryset, cada una para el tipo de relación que le corresponde.'},
+
+{topic:'django', source:'simulado', q:'En el admin, <code>CustomerProfile</code> se registra como <code>StackedInline</code> dentro de <code>CustomerAdmin</code>, mientras que <code>InvoiceDetail</code> se registra como <code>TabularInline</code> dentro de <code>InvoiceAdmin</code>. ¿Por qué la diferencia?',
+ opts:['CustomerProfile es una relación OneToOne (un único registro relacionado, se ve mejor apilado verticalmente); InvoiceDetail es una FK inversa con potencialmente varias líneas por factura (se ve mejor en formato de tabla compacta)', 'Es indistinto, ambos inlines hacen exactamente lo mismo', 'StackedInline es solo para modelos con menos de 5 campos', 'TabularInline no funciona con ForeignKey, solo con OneToOne'], correct:0,
+ why:'<code>StackedInline</code> apila los campos de cada registro relacionado verticalmente — cómodo cuando esperas como máximo un registro (como una relación OneToOne). <code>TabularInline</code> muestra los registros como filas de una tabla — mejor cuando esperas varios registros relacionados (como las líneas de una factura, FK inversa de InvoiceDetail).'},
+
+{topic:'django', source:'simulado', q:'¿Cuál es la diferencia entre <code>product.suppliers.set([dist])</code> y <code>product.suppliers.add(dist)</code> en una relación ManyToMany?',
+ opts:['<code>.set([...])</code> REEMPLAZA todas las relaciones existentes por la lista dada (quita las que sobren, agrega las que falten); <code>.add()</code> solo agrega, sin quitar las que ya había', '.set() y .add() hacen exactamente lo mismo', '.set() borra permanentemente los proveedores de la base de datos', '.add() solo funciona la primera vez que se llama'], correct:0,
+ why:'<code>.add(dist)</code> es acumulativo: agrega esa relación sin tocar las demás. <code>.set([dist])</code> sincroniza la relación completa con la lista dada — si el producto ya tenía otros proveedores que no están en la lista, se les quita la relación (sin borrar los objetos <code>Supplier</code> en sí, solo la relación M2M).'},
+];
+
+// ---- engine ----
+let filtered = QUESTIONS.filter(q=>(q.source||'real')==='real');
+let order = filtered.map((_,i)=>i);
+let idx = 0;
+let answers = []; // sparse, indexed by idx: {qIndex(in filtered), type, chosen, correct}
+let currentFilter = 'all';
+
+const el = id => document.getElementById(id);
+const counterEl = el('counter'), fillEl = el('progressFill'), scoreChipEl = el('scoreChip');
+const qTopicTag = el('qTopicTag'), qText = el('qText'), qCode = el('qCode'), qOpts = el('qOpts'), qMatch = el('qMatch'), qWhy = el('qWhy');
+const prevBtn = el('prevBtn'), checkBtn = el('checkBtn'), nextBtn = el('nextBtn'), quizCard = el('quizCard'), endCard = el('endCard');
+
+function shuffleArray(arr){
+  const a = [...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function applyFilter(f){
+  currentFilter = f;
+  document.querySelectorAll('.chip[data-filter]').forEach(c=>c.classList.toggle('active', c.dataset.filter===f));
+  if(f==='simulado') filtered = QUESTIONS.filter(q=>q.source==='simulado');
+  else if(f==='all') filtered = QUESTIONS.filter(q=>(q.source||'real')==='real');
+  else filtered = QUESTIONS.filter(q=>(q.source||'real')==='real' && q.topic===f);
+  order = filtered.map((_,i)=>i);
+  restart();
+}
+
+function shuffle(){
+  order = shuffleArray(order);
+  restart();
+}
+
+function restart(pool){
+  if(pool){ filtered = pool; order = filtered.map((_,i)=>i); }
+  idx = 0; answers = [];
+  quizCard.style.display='block'; endCard.classList.remove('show');
+  renderQuestion();
+}
+
+function updateStatus(){
+  counterEl.textContent = `Pregunta ${idx+1} de ${filtered.length}`;
+  fillEl.style.width = `${(idx/filtered.length)*100}%`;
+  const answered = answers.filter(Boolean);
+  scoreChipEl.textContent = `${answered.filter(a=>a.correct).length} / ${answered.length}`;
+  prevBtn.disabled = idx===0;
+}
+
+function renderQuestion(){
+  const q = filtered[order[idx]];
+  qTopicTag.textContent = q.topic==='django' ? 'Django' : 'POO';
+  qTopicTag.className = 'topic-tag ' + q.topic;
+  qText.innerHTML = q.q;
+  if(q.code){ qCode.style.display='block'; qCode.innerHTML = q.code; } else { qCode.style.display='none'; qCode.innerHTML=''; }
+  qWhy.classList.remove('show'); qWhy.innerHTML='';
+  nextBtn.classList.add('show'); // siempre visible: se puede saltar sin responder
+  checkBtn.classList.remove('show');
+  checkBtn.disabled = true;
+
+  const saved = answers[idx];
+  if(q.type==='match'){
+    qOpts.style.display='none'; qOpts.innerHTML='';
+    qMatch.style.display='grid';
+    saved ? renderMatchLocked(q, saved) : renderMatchFresh(q);
+  } else {
+    qMatch.style.display='none'; qMatch.innerHTML='';
+    qOpts.style.display='grid';
+    saved ? renderMcqLocked(q, saved) : renderMcqFresh(q);
+  }
+  updateStatus();
+}
+
+function showWhy(q){
+  qWhy.innerHTML = `<b>Por qué:</b> ${q.why}`;
+  qWhy.classList.add('show');
+  nextBtn.classList.add('show');
+}
+
+// ---- multiple choice ----
+function renderMcqFresh(q){
+  qOpts.innerHTML='';
+  q.opts.forEach((optText, i)=>{
+    const b = document.createElement('button');
+    b.className='opt';
+    b.innerHTML = `<span class="tag">${String.fromCharCode(97+i)}.</span><span>${optText}</span><span class="mark"></span>`;
+    b.addEventListener('click', ()=>selectAnswer(i));
+    qOpts.appendChild(b);
+  });
+}
+
+function renderMcqLocked(q, saved){
+  qOpts.innerHTML='';
+  q.opts.forEach((optText, i)=>{
+    const b = document.createElement('button');
+    b.className='opt';
+    b.disabled = true;
+    b.innerHTML = `<span class="tag">${String.fromCharCode(97+i)}.</span><span>${optText}</span><span class="mark"></span>`;
+    if(i===q.correct){ b.classList.add('correct'); b.querySelector('.mark').textContent='✓'; }
+    else if(i===saved.chosen){ b.classList.add('incorrect'); b.querySelector('.mark').textContent='✕'; }
+    qOpts.appendChild(b);
+  });
+  showWhy(q);
+}
+
+function selectAnswer(choice){
+  const q = filtered[order[idx]];
+  const buttons = [...qOpts.children];
+  buttons.forEach((btn,i)=>{
+    btn.disabled = true;
+    if(i===q.correct){ btn.classList.add('correct'); btn.querySelector('.mark').textContent='✓'; }
+    else if(i===choice){ btn.classList.add('incorrect'); btn.querySelector('.mark').textContent='✕'; }
+  });
+  answers[idx] = {qIndex:order[idx], type:'mcq', chosen:choice, correct: choice===q.correct};
+  showWhy(q);
+  updateStatus();
+}
+
+// ---- matching ----
+function renderMatchFresh(q){
+  qMatch.innerHTML='';
+  const rightOptions = shuffleArray(q.pairs.map(p=>p[1]));
+  q.pairs.forEach((pair, i)=>{
+    const row = document.createElement('div');
+    row.className='match-row';
+    const left = document.createElement('div');
+    left.className='match-left';
+    left.innerHTML = pair[0];
+    const select = document.createElement('select');
+    select.className='match-select';
+    select.dataset.row = i;
+    select.innerHTML = `<option value="">-- selecciona --</option>` + rightOptions.map(r=>`<option value="${r.replace(/"/g,'&quot;')}">${r}</option>`).join('');
+    select.addEventListener('change', ()=>{
+      const allFilled = [...qMatch.querySelectorAll('select')].every(s=>s.value);
+      checkBtn.disabled = !allFilled;
+    });
+    const mark = document.createElement('span');
+    mark.className='match-mark';
+    row.appendChild(left); row.appendChild(select); row.appendChild(mark);
+    qMatch.appendChild(row);
+  });
+  checkBtn.classList.add('show');
+  checkBtn.onclick = ()=>checkMatch(q);
+}
+
+function checkMatch(q){
+  const rows = [...qMatch.children];
+  const chosen = rows.map(row => row.querySelector('select').value);
+  let allCorrect = true;
+  rows.forEach((row, i)=>{
+    const select = row.querySelector('select');
+    const mark = row.querySelector('.match-mark');
+    select.disabled = true;
+    const isRight = chosen[i] === q.pairs[i][1];
+    if(!isRight) allCorrect = false;
+    row.classList.add(isRight ? 'correct' : 'incorrect');
+    mark.textContent = isRight ? '✓' : '✕';
+  });
+  answers[idx] = {qIndex:order[idx], type:'match', chosen, correct: allCorrect};
+  checkBtn.classList.remove('show');
+  showWhy(q);
+  updateStatus();
+}
+
+function renderMatchLocked(q, saved){
+  qMatch.innerHTML='';
+  q.pairs.forEach((pair, i)=>{
+    const row = document.createElement('div');
+    const isRight = saved.chosen[i] === pair[1];
+    row.className = 'match-row ' + (isRight ? 'correct' : 'incorrect');
+    const left = document.createElement('div');
+    left.className='match-left';
+    left.innerHTML = pair[0];
+    const select = document.createElement('select');
+    select.className='match-select';
+    select.disabled = true;
+    const opts = new Set([saved.chosen[i], pair[1]].filter(Boolean));
+    select.innerHTML = [...opts].map(r=>`<option value="${r.replace(/"/g,'&quot;')}" ${r===saved.chosen[i]?'selected':''}>${r}</option>`).join('');
+    const mark = document.createElement('span');
+    mark.className='match-mark';
+    mark.textContent = isRight ? '✓' : '✕';
+    row.appendChild(left); row.appendChild(select); row.appendChild(mark);
+    qMatch.appendChild(row);
+  });
+  showWhy(q);
+}
+
+prevBtn.addEventListener('click', ()=>{
+  if(idx>0){ idx--; renderQuestion(); }
+});
+
+nextBtn.addEventListener('click', ()=>{
+  if(idx < filtered.length-1){ idx++; renderQuestion(); }
+  else { showEnd(); }
+});
+
+function showEnd(){
+  fillEl.style.width='100%';
+  quizCard.style.display='none';
+  endCard.classList.add('show');
+  const answered = answers.filter(Boolean);
+  const correct = answered.filter(a=>a.correct).length;
+  const total = answered.length;
+  const pct = total ? Math.round((correct/total)*100) : 0;
+  el('finalScore').textContent = pct+'%';
+  el('finalLabel').textContent = `${correct} de ${total} correctas`;
+
+  const pooTotal = answered.filter(a=>filtered[a.qIndex].topic==='poo').length;
+  const pooCorrect = answered.filter(a=>filtered[a.qIndex].topic==='poo' && a.correct).length;
+  const djTotal = answered.filter(a=>filtered[a.qIndex].topic==='django').length;
+  const djCorrect = answered.filter(a=>filtered[a.qIndex].topic==='django' && a.correct).length;
+  el('poobar').style.width = pooTotal ? (pooCorrect/pooTotal*100)+'%' : '0%';
+  el('poonum').textContent = `${pooCorrect}/${pooTotal}`;
+  el('djbar').style.width = djTotal ? (djCorrect/djTotal*100)+'%' : '0%';
+  el('djnum').textContent = `${djCorrect}/${djTotal}`;
+
+  const missed = answered.filter(a=>!a.correct);
+  const missedList = el('missedList');
+  missedWrap.style.display = missed.length ? 'block' : 'none';
+  missedList.innerHTML = missed.map(a=>{
+    const q = filtered[a.qIndex];
+    return `<div class="missed-item"><b>${q.topic==='django'?'Django':'POO'}:</b> ${q.q.replace(/<[^>]+>/g,'')}</div>`;
+  }).join('');
+}
+
+document.querySelectorAll('.chip[data-filter]').forEach(c=>{
+  c.addEventListener('click', ()=>applyFilter(c.dataset.filter));
+});
+el('shuffleBtn').addEventListener('click', shuffle);
+el('retryAllBtn').addEventListener('click', ()=>{ order = filtered.map((_,i)=>i); restart(filtered); });
+el('retryMissedBtn').addEventListener('click', ()=>{
+  const answered = answers.filter(Boolean);
+  const missedQs = answered.filter(a=>!a.correct).map(a=>filtered[a.qIndex]);
+  if(missedQs.length===0) return;
+  restart(missedQs);
+});
+
+renderQuestion();
+</script>
